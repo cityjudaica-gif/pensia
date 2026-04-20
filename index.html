@@ -3,108 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пенсионный Стратег v2.7</title>
+    <title>Пенсионный Эксперт v2.8</title>
     <style>
-        :root { --p-blue: #2c3e50; --a-green: #27ae60; --warn: #f39c12; --error: #e74c3c; --bg: #f0f4f8; }
+        :root { --p-blue: #1e293b; --a-green: #10b981; --warn: #f59e0b; --error: #ef4444; --bg: #f8fafc; }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--p-blue); margin: 0; padding: 10px; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--p-blue); margin: 0; padding: 10px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
-        /* Верхний индикатор Выгоды */
-        .strategy-header { position: sticky; top: 0; z-index: 100; background: white; border: 2px solid var(--a-green); padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .stat-box { text-align: center; }
-        .stat-box span { display: block; font-size: 0.8em; color: #64748b; font-weight: bold; }
-        .stat-box b { font-size: 1.3em; color: var(--p-blue); }
-        .safe-zone { color: var(--a-green) !important; }
+        /* Верхняя панель стратегии */
+        .strategy-banner { position: sticky; top: 0; z-index: 100; background: var(--p-blue); color: white; padding: 15px; border-radius: 12px; margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; text-align: center; }
+        .stat { display: flex; flex-direction: column; }
+        .stat span { font-size: 0.7em; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .stat b { font-size: 1.2em; color: var(--a-green); }
 
-        .main-grid { display: flex; flex-wrap: wrap; gap: 20px; }
-        .inputs-area { flex: 1; min-width: 300px; }
-        .sticky-results { flex: 0 0 360px; min-width: 300px; }
+        .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 30px; }
+        @media (max-width: 950px) { .main-grid { grid-template-columns: 1fr; } }
 
-        .section-title { border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin: 20px 0 15px; display: flex; justify-content: space-between; align-items: center; }
-        .fund-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 40px; gap: 10px; margin-bottom: 10px; padding: 12px; background: #f8fafc; border-radius: 8px; align-items: end; }
-
-        .input-field { display: flex; flex-direction: column; gap: 4px; }
-        label { font-size: 0.7em; font-weight: bold; color: #64748b; text-transform: uppercase; }
-        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
-
-        /* Вердикт выгоды */
-        .verdict-box { background: #e0f2fe; padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 5px solid #0284c7; }
+        .card { border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
         
-        .res-card { background: var(--p-blue); color: white; padding: 25px; border-radius: 15px; position: sticky; top: 120px; }
-        .res-total { font-size: 2em; color: #2ecc71; text-align: center; margin: 15px 0; border-top: 1px solid #3e5871; padding-top: 15px; }
+        .fund-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 40px; gap: 10px; margin-bottom: 10px; background: #f1f5f9; padding: 10px; border-radius: 8px; align-items: end; }
+        
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.75em; font-weight: bold; color: #475569; }
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95em; }
 
-        @media (max-width: 768px) { .fund-row { grid-template-columns: 1fr 1fr; } .sticky-results { flex: 1 1 100%; } }
+        .badge-early { background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
+
+        /* Итоги */
+        .results-box { background: white; border: 2px solid var(--p-blue); padding: 25px; border-radius: 16px; position: sticky; top: 100px; }
+        .total-amount { font-size: 2.2em; font-weight: 900; color: var(--p-blue); margin: 10px 0; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="strategy-header">
-        <div class="stat-box">
-            <span>ВАШ БЕЗОПАСНЫЙ ПОРОГ (З/П)</span>
-            <b id="safeLimit" class="safe-zone">0 ₪</b>
-        </div>
-        <div class="stat-box">
-            <span>ЭФФЕКТИВНОСТЬ РАБОТЫ</span>
-            <b id="workEff">100%</b>
-        </div>
-        <div class="stat-box">
-            <span>БИТУАХ ЛЕУМИ К ВЫПЛАТЕ</span>
-            <b id="btlActual">0 ₪</b>
-        </div>
+    <div class="strategy-banner">
+        <div class="stat"><span>Законный возраст (Приша)</span><b id="legalAge">67</b></div>
+        <div class="stat"><span>Безопасный доход (Work)</span><b id="safeWork">0 ₪</b></div>
+        <div class="stat"><span>Налоговый статус</span><b id="taxStatus">Обычный</b></div>
     </div>
 
     <div class="main-grid">
-        <div class="inputs-area">
-            <div class="section-title"><h3>👤 Личные данные</h3></div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-                <div class="input-field">
-                    <label>Пол</label>
-                    <select id="gender" onchange="runEngine()">
-                        <option value="male">Мужчина</option>
-                        <option value="female">Женщина</option>
-                    </select>
+        <div class="editor">
+            <div class="card">
+                <h3>👤 Личный профиль</h3>
+                <div class="input-group">
+                    <div class="field">
+                        <label>Пол</label>
+                        <select id="gender" onchange="run()">
+                            <option value="male">Мужчина</option>
+                            <option value="female">Женщина</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Год рождения</label>
+                        <input type="number" id="birthYear" value="1965" oninput="run()">
+                    </div>
+                    <div class="field">
+                        <label>Возраст выхода</label>
+                        <input type="number" id="retireAge" value="67" oninput="run()">
+                    </div>
+                    <div class="field">
+                        <label>Зарплата на пенсии</label>
+                        <input type="number" id="salary" value="0" oninput="run()">
+                    </div>
                 </div>
-                <div class="input-field">
-                    <label>Год рождения</label>
-                    <input type="number" id="birthYear" value="1960" oninput="runEngine()">
-                </div>
-                <div class="input-field" style="background: #eef2f7; padding: 5px; border-radius: 6px;">
-                    <label>ПРЕДПОЛАГАЕМАЯ ЗАРПЛАТА</label>
-                    <input type="number" id="workSalary" value="0" oninput="runEngine()">
-                </div>
+                <div id="ageWarning" style="margin-top:10px;"></div>
             </div>
 
-            <div class="section-title">
-                <h3>🏦 Пенсионные активы</h3>
-                <button onclick="addFund()" style="background:var(--p-blue); color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">+ Добавить</button>
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>💰 Все накопления (Фонды + Капитал)</h3>
+                    <button onclick="addFund()" style="cursor:pointer; background:var(--p-blue); color:white; border:none; padding:8px 15px; border-radius:6px;">+ Добавить</button>
+                </div>
+                <div id="fundsList" style="margin-top:15px;"></div>
             </div>
-            <div id="fundsList"></div>
 
-            <div class="verdict-box" id="verdict">
-                <b>Анализ:</b> Введите данные, чтобы получить финансовый вердикт.
+            <div class="card" id="analysis" style="background:#f0f9ff; border:none;">
+                <h4>📝 Экспертный вердикт</h4>
+                <div id="verdictText">Введите данные для глубокого анализа...</div>
             </div>
         </div>
 
-        <div class="sticky-results">
-            <div class="res-card">
-                <h4 style="margin:0; font-size:0.8em; color:#94a3b8;">ВАШ РЕАЛЬНЫЙ ДОХОД (НЕТТО)</h4>
-                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #3e5871;">
-                    <span>Пенсия (из фондов):</span> <span id="resF">0 ₪</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #3e5871;">
-                    <span>Битуах Леуми:</span> <span id="resB">0 ₪</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #3e5871;">
-                    <span>Зарплата (чистыми):</span> <span id="resS">0 ₪</span>
-                </div>
+        <div class="results-sidebar">
+            <div class="results-box">
+                <h4 style="margin:0; text-align:center; color:#64748b;">МЕСЯЧНЫЙ ДОХОД (НЕТТО)</h4>
+                <div class="total-amount" id="totalNet">0 ₪</div>
                 
-                <div class="res-total" id="resTotal">0 ₪</div>
+                <hr style="border:0; border-top:1px solid #e2e8f0; margin:20px 0;">
                 
-                <p style="font-size:0.75em; color:#bdc3c7; text-align:center;">
-                    * Расчет включает Mivchan Hachnasot и подоходный налог (оценочно).
-                </p>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <span>Пенсионная выплата:</span> <b id="resP">0 ₪</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <span>Битуах Леуми:</span> <b id="resB">0 ₪</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <span>Доп. доход (капитал):</span> <b id="resC">0 ₪</b>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>Зарплата (чистыми):</span> <b id="resS">0 ₪</b>
+                </div>
             </div>
         </div>
     </div>
@@ -117,79 +117,92 @@
         const div = document.createElement('div');
         div.className = 'fund-row';
         div.innerHTML = `
-            <div class="input-field"><label>Фонд</label><input type="text" class="f-name" placeholder="Напр: Harel" oninput="runEngine()"></div>
-            <div class="input-field"><label>Тип</label><select class="f-type" onchange="runEngine()"><option value="new">Пенсия</option><option value="old">Битух Мен.</option></select></div>
-            <div class="input-field"><label>Сумма (₪)</label><input type="number" class="f-sum" value="0" oninput="runEngine()"></div>
-            <div class="input-field"><label>Макдем</label><input type="number" class="f-makdem" placeholder="Авто" oninput="runEngine()"></div>
-            <button style="background:none; border:none; color:var(--error); font-size:1.5em; cursor:pointer;" onclick="this.parentElement.remove(); runEngine();">×</button>
+            <div class="field"><label>Тип</label>
+                <select class="f-type" onchange="run()">
+                    <option value="pension">Керен Пенсия</option>
+                    <option value="manager">Битуах Менаалим</option>
+                    <option value="capital">Керен Иштальмут / Счёт</option>
+                </select>
+            </div>
+            <div class="field"><label>Сумма</label><input type="number" class="f-sum" value="0" oninput="run()"></div>
+            <div class="field"><label>Макдем</label><input type="number" class="f-makdem" placeholder="Авто" oninput="run()"></div>
+            <div class="field"><label>Название</label><input type="text" placeholder="Harel..." oninput="run()"></div>
+            <button style="background:none; border:none; color:var(--error); cursor:pointer; font-size:1.2em;" onclick="this.parentElement.remove(); run()">×</button>
         `;
         document.getElementById('fundsList').appendChild(div);
     }
     addFund();
 
-    async function runEngine() {
+    async function run() {
         try {
             const makdemData = await fetchCSV('Makdem_Reference');
-            const year = parseInt(document.getElementById('birthYear').value);
+            const birthYear = parseInt(document.getElementById('birthYear').value);
             const gender = document.getElementById('gender').value;
-            const salary = parseFloat(document.getElementById('workSalary').value) || 0;
+            const retireAge = parseInt(document.getElementById('retireAge').value);
+            const salary = parseFloat(document.getElementById('salary').value) || 0;
 
-            let pensionBrutto = 0;
+            // 1. Расчет Гиль Приша (упрощенно по закону)
+            let legalAge = (gender === 'male') ? 67 : 62;
+            if (gender === 'female' && birthYear >= 1960) legalAge = 64; // Плавное повышение
+            document.getElementById('legalAge').innerText = legalAge;
+
+            let ageWarn = document.getElementById('ageWarning');
+            if (retireAge < legalAge) {
+                ageWarn.innerHTML = `<span class="badge-early">⚠️ Ранний выход (до ${legalAge})</span> - Пенсия будет ниже на 15-30% из-за макдема.`;
+            } else { ageWarn.innerHTML = ""; }
+
+            let pensionSum = 0;
+            let capitalIncome = 0;
+
             document.querySelectorAll('.fund-row').forEach(row => {
-                const sum = parseFloat(row.querySelector('.f-sum').value) || 0;
                 const type = row.querySelector('.f-type').value;
+                const sum = parseFloat(row.querySelector('.f-sum').value) || 0;
                 let m = parseFloat(row.querySelector('.f-makdem').value);
-                if (!m) {
-                    const r = makdemData.find(x => x[0] == year);
-                    if (r) m = (gender === 'male') ? (type === 'old' ? r[3] : r[1]) : (type === 'old' ? r[4] : r[2]);
-                    else m = 200;
+
+                if (type === 'capital') {
+                    capitalIncome += (sum * 0.04 / 12); // Считаем 4% годовой доходности как прибавку
+                } else {
+                    if (!m) {
+                        const r = makdemData.find(x => x[0] == birthYear);
+                        if (r) {
+                            m = (gender === 'male') ? (type === 'manager' ? r[3] : r[1]) : (type === 'manager' ? r[4] : r[2]);
+                            if (retireAge < legalAge) m = parseFloat(m) * 1.1; // Штрафной коэффициент макдема
+                        } else m = 200;
+                    }
+                    pensionSum += (sum / m);
                 }
-                pensionBrutto += (sum / m);
             });
 
-            // Логика Битуах Леуми (2026)
-            const BTL_LIMIT = 9208; // Порог дохода
-            const BTL_FULL = 1736; // Базовое пособие
-            
-            const safeSalary = Math.max(0, BTL_LIMIT - pensionBrutto);
-            document.getElementById('safeLimit').innerText = Math.round(safeSalary).toLocaleString() + ' ₪';
-
-            let actualBtl = BTL_FULL;
-            let penalty = 0;
-            if ((pensionBrutto + salary) > BTL_LIMIT) {
-                penalty = (pensionBrutto + salary - BTL_LIMIT) * 0.6;
-                actualBtl = Math.max(0, BTL_FULL - penalty);
+            // 2. Битуах Леуми (Mivchan Hachnasot)
+            const LIMIT = 9208;
+            const FULL_BTL = 1736;
+            let currentBtl = FULL_BTL;
+            if (retireAge < legalAge) {
+                currentBtl = 0; // До законного возраста пособие по старости не платят!
+            } else {
+                const totalForBtl = pensionSum + salary;
+                if (totalForBtl > LIMIT) currentBtl = Math.max(0, FULL_BTL - (totalForBtl - LIMIT) * 0.6);
             }
-            document.getElementById('btlActual').innerText = Math.round(actualBtl).toLocaleString() + ' ₪';
 
-            // Эффективность работы
-            let eff = 100;
-            if (salary > 0) {
-                const loss = penalty / salary;
-                eff = Math.max(0, (1 - loss - 0.1) * 100); // 0.1 - примерный налог
-            }
-            document.getElementById('workEff').innerText = Math.round(eff) + '%';
+            const safeSal = Math.max(0, LIMIT - pensionSum);
+            document.getElementById('safeWork').innerText = Math.round(safeSal) + " ₪";
 
-            // Итоговые суммы
-            const netSalary = salary * 0.9; // Чистая з/п после налогов
-            const totalNetto = pensionBrutto + actualBtl + netSalary;
-
-            document.getElementById('resF').innerText = Math.round(pensionBrutto).toLocaleString() + ' ₪';
-            document.getElementById('resB').innerText = Math.round(actualBtl).toLocaleString() + ' ₪';
-            document.getElementById('resS').innerText = Math.round(netSalary).toLocaleString() + ' ₪';
-            document.getElementById('resTotal').innerText = Math.round(totalNetto).toLocaleString() + ' ₪';
+            // Итоги
+            const finalNet = pensionSum + currentBtl + capitalIncome + (salary * 0.9);
+            document.getElementById('totalNet').innerText = Math.round(finalNet).toLocaleString() + " ₪";
+            document.getElementById('resP').innerText = Math.round(pensionSum).toLocaleString() + " ₪";
+            document.getElementById('resB').innerText = Math.round(currentBtl).toLocaleString() + " ₪";
+            document.getElementById('resC').innerText = Math.round(capitalIncome).toLocaleString() + " ₪";
+            document.getElementById('resS').innerText = Math.round(salary * 0.9).toLocaleString() + " ₪";
 
             // Вердикт
-            const v = document.getElementById('verdict');
-            if (salary === 0) {
-                v.innerHTML = `💡 <b>Совет:</b> Вы можете работать и получать до <b>${Math.round(safeSalary)} ₪</b> дополнительно. В этом случае пособие Битуах Леуми сохранится на 100%.`;
-            } else if (salary <= safeSalary) {
-                v.innerHTML = `✅ <b>Отличный выбор:</b> Ваша зарплата находится в "зеленой зоне". Вы получаете максимум от государства и от работы.`;
-            } else {
-                v.innerHTML = `⚠️ <b>Финансовый риск:</b> Из-за высокой зарплаты вы теряете <b>${Math.round(penalty)} ₪</b> из пособия. Ваша реальная выгода от работы составляет всего <b>${Math.round(eff)}%</b>. Стоит ли это вашего времени?`;
-            }
+            let verdict = `При выходе в <b>${retireAge}</b> ваш основной доход составит ${Math.round(pensionSum)} ₪. `;
+            if (retireAge < legalAge) verdict += `<b>Внимание:</b> Вы не получите пособие Битуах Леуми до достижения ${legalAge} лет. `;
+            if (capitalIncome > 0) verdict += `Дополнительные накопления приносят вам +${Math.round(capitalIncome)} ₪ в месяц (при 4% доходности). `;
+            
+            document.getElementById('verdictText').innerHTML = verdict;
 
-        } catch (e) { console.warn("Расчет..."); }
+        } catch (e) { console.warn("Calculation..."); }
     }
 
     async function fetchCSV(name) {
