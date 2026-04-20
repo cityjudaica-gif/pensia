@@ -671,3 +671,116 @@ function calculate() {
         if (yearsNoContrib > 0) {
             sum *= Math.pow(1 + marketRate - fee, yearsNoContrib);
         }
+        
+        totalNominalFunds += sum;
+        
+        if (type === 'capital') {
+            // Правило 4% SWR: ежемесячный доход
+            totalNominalCapital += sum * 0.04 / 12;
+        } else {
+            const makdem = getMakdem(birthYear, gender, type);
+            totalNominalPension += sum / makdem;
+        }
+    });
+
+    // ── Дефлирование (каждый поток отдельно) ──────────────────
+    const defFactor     = Math.pow(1 + P.inf, yearsToRetire);
+    const realPension   = totalNominalPension / defFactor;   // ₪/мес, цены сегодня
+    const realCapital   = totalNominalCapital / defFactor;   // ₪/мес, цены сегодня
+    const realFundsSum  = totalNominalFunds   / defFactor;   // сумма в фондах, цены сегодня
+
+    // ── BTL С ИНДЕКСАЦИЕЙ ПОРОГОВ ─────────────────────────────
+    // Индексируем пороги BTL на инфляцию до выхода на пенсию
+    const btlMaxReal = P.btlMax * Math.pow(1 + P.inf, yearsToRetire);
+    const btlBaseReal = P.btlBase * Math.pow(1 + P.inf, yearsToRetire);
+    
+    const pensionIncome = realPension + realCapital;
+    let btlPenalty = 0;
+    if (pensionIncome > btlMaxReal) {
+        btlPenalty = (pensionIncome - btlMaxReal) * P.btlPenalty;
+    }
+    const finalBtl  = Math.max(0, btlBaseReal - btlPenalty);
+    const safeZone  = Math.max(0, btlMaxReal - pensionIncome);
+    const totalNet  = realPension + realCapital + finalBtl;
+
+    // ── ФОРМАТИРОВАНИЕ ────────────────────────────────────────
+    const fmt  = n  => Math.round(n).toLocaleString('ru-RU') + ' ₪';
+    const fmtA = n  => Math.round(n).toLocaleString('ru-RU'); // без символа (для большого числа)
+
+    // Верхняя панель
+    const retLabel = retInfo.months > 0
+        ? `${retInfo.years}л ${retInfo.months}м`
+        : `${retInfo.years}`;
+    document.getElementById('navRetAge').innerText    = retLabel;
+    
+    // Красивое отображение лет до пенсии (месяцы для малых значений)
+    const yearsLeftDisplay = yearsToRetire < 1 
+        ? `${Math.round(yearsToRetire * 12)} мес` 
+        : yearsToRetire.toFixed(1);
+    document.getElementById('navYearsLeft').innerText = yearsLeftDisplay;
+
+    const szEl = document.getElementById('navSafeZone');
+    szEl.innerText   = fmt(safeZone);
+    szEl.className   = safeZone > 500 ? 'ok' : 'bad';
+
+    const ntEl = document.getElementById('navTotal');
+    ntEl.innerText = fmt(totalNet);
+    ntEl.className = totalNet >= P.minLiving ? 'ok' : 'bad';
+
+    // Детализация
+    document.getElementById('outReal').innerText      = fmt(realPension);
+    document.getElementById('outCapital').innerText   = fmt(realCapital);
+    document.getElementById('outBtl').innerText       = fmt(finalBtl);
+    document.getElementById('outPenalty').innerText   = btlPenalty > 0 ? '−' + fmt(btlPenalty) : '0 ₪';
+    document.getElementById('outNominalSum').innerText = fmt(totalNominalFunds);
+
+    // Итого
+    const mainEl = document.getElementById('mainTotal');
+    mainEl.innerText  = fmtA(totalNet);
+    mainEl.className  = 'total-amount ' + (totalNet >= P.minLiving ? 'good' : 'bad');
+
+    // Вердикт
+    const v = document.getElementById('verdict');
+    if (yearsToRetire <= 0) {
+        v.innerText = '📅 Пенсионный возраст уже достигнут.';
+    } else if (totalNet < P.minLiving) {
+        v.innerText = `⚠ Ниже прожиточного минимума (${P.minLiving.toLocaleString()} ₪). Увеличьте взносы.`;
+    } else if (btlPenalty > 0) {
+        v.innerText = `⚡ BTL срезается на ${fmt(btlPenalty)}. Рассмотрите Керен Иштальмут.`;
+    } else if (safeZone < 500) {
+        v.innerText = '⚡ На грани порога BTL. Аккуратно с дополнительными взносами.';
+    } else {
+        v.innerText = '✓ Прогноз устойчив. Хороший запас до порога BTL.';
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  ДЕБАУНС + СЛУШАТЕЛИ
+// ─────────────────────────────────────────────────────────────
+let debounceTimer;
+
+function scheduleCalc() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(calculate, 300);
+}
+
+document.addEventListener('input', e => {
+    if (e.target.closest('#mainApp')) scheduleCalc();
+});
+document.addEventListener('change', e => {
+    if (['gender', 'birthDate'].includes(e.target.id) || e.target.closest('.fund-item')) {
+        clearTimeout(debounceTimer);
+        calculate();
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+//  ИНИЦИАЛИЗАЦИЯ
+// ─────────────────────────────────────────────────────────────
+// Очищаем список перед добавлением (на случай повторной инициализации)
+document.getElementById('fundsList').innerHTML = '';
+addFund('Основная пенсия', 'pension',  450000, 6,   12.5, 0.50, true);
+addFund('Керен Иштальмут', 'capital',  120000, 2.5, 7.5,  0.25, true);
+</script>
+</body>
+</html>
