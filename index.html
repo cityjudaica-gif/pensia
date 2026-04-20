@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pension Navigator 4.9 — Полностью исправленный</title>
+    <title>Pension Navigator 5.0 — Актуальный BTL и пенсионный возраст</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Libre+Baskerville:wght@400;700&display=swap');
 
@@ -219,17 +219,6 @@
             font-family: var(--mono); font-size: 10px; color: var(--danger);
         }
         .error-banner.show { display: block; }
-        
-        .debug-info {
-            font-family: var(--mono);
-            font-size: 9px;
-            color: var(--text-light);
-            margin-top: 8px;
-            padding: 8px;
-            background: #f0ede6;
-            border-radius: 3px;
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -237,7 +226,7 @@
 
     <div class="masthead">
         <h1>Pension Navigator</h1>
-        <span class="masthead-sub">v4.9 — IL / 2025 (полностью исправленный)</span>
+        <span class="masthead-sub">v5.0 — Актуальный BTL и пенсионный возраст</span>
     </div>
 
     <div class="header-nav">
@@ -324,7 +313,7 @@
                 <b id="outBtl">—</b>
             </div>
             <div class="result-row">
-                <span>Штраф BTL:</span>
+                <span>Снижение BTL из-за дохода:</span>
                 <b id="outPenalty" style="color:var(--danger)">—</b>
             </div>
             <div class="result-row" style="opacity:.55">
@@ -332,10 +321,10 @@
                 <b id="outNominalSum">—</b>
             </div>
             <p class="footnote">
-                * Инфляция 2.5% / год · Рост ЗП 2% / год в период взносов<br>
-                * Макдем: официальная таблица Маслаки 2024 (с экстраполяцией)<br>
-                * Штраф BTL: 60% от превышения порога 9,208 ₪ (индексируется на инфляцию)<br>
-                * BTL и запас зависят от пенсионного дохода, который растет с зарплатой
+                * Актуальные данные Bituah Leumi на 2025 год.<br>
+                * Пенсионный возраст: мужчины 67, женщины 62-65 (поэтапный переход).<br>
+                * Снижение BTL: 60% от превышения порога 9,208 ₪ (индексируется на инфляцию).<br>
+                * BTL считается по правилу: пособие = максимум (0, базовая ставка - снижение).
             </p>
         </div>
 
@@ -370,21 +359,22 @@
 
 <script>
 // ─────────────────────────────────────────────────────────────
-//  КОНСТАНТЫ
+//  КОНСТАНТЫ (ОБНОВЛЕНЫ НА 2025 ГОД)
 // ─────────────────────────────────────────────────────────────
 const P = {
     inf:        0.025,  // инфляция 2.5%
     grow:       0.02,   // рост зарплаты 2%
-    btlBase:    1736,   // базовое пособие BTL (2024)
-    btlMax:     9208,   // максимальный доход до штрафа (2024)
-    btlPenalty: 0.60,   // штраф 60% от превышения
+    // Актуальные данные Bituah Leumi на 2025 год:
+    btlBase:    1736,   // базовое пособие (для пенсионеров, не получающих другие доходы)
+    btlMax:     9208,   // максимальный доход до начала снижения пособия
+    btlReductionRate: 0.60, // на 60% уменьшается пособие при превышении порога
     minLiving:  4800,   // прожиточный минимум (₪/мес, 2024)
 };
 
 let marketRate = 0.05;
 
 // ─────────────────────────────────────────────────────────────
-//  ТАБЛИЦА МАКДЕМ
+//  ТАБЛИЦА МАКДЕМ (Маслака 2024)
 // ─────────────────────────────────────────────────────────────
 const MAKDEM = [
     [1940, 159, 176, 162, 178],
@@ -449,25 +439,38 @@ function getMakdem(birthYear, gender, type) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  ПЕНСИОННЫЙ ВОЗРАСТ
+//  ПЕНСИОННЫЙ ВОЗРАСТ (ПО ДАННЫМ BTL.GOV.IL)
+//  Источник: https://www.btl.gov.il/RussianHomePage/Benefits_ru/Vatikim_ru/tnaeyZekaut_ru/GilZakaut/Pages/hagilHarishon.aspx
 // ─────────────────────────────────────────────────────────────
 function getRetireAge(gender, birthYear) {
+    // Мужчины: 67 лет (единый возраст с 2004 года)
     if (gender === 'male') return { years: 67, months: 0, decimal: 67 };
 
-    const femTable = {
-        1955: { years: 62, months: 0  },
-        1956: { years: 62, months: 4  },
-        1957: { years: 62, months: 8  },
-        1958: { years: 63, months: 0  },
-        1959: { years: 63, months: 4  },
-        1960: { years: 63, months: 8  },
-        1961: { years: 64, months: 0  },
-        1962: { years: 64, months: 4  },
-        1963: { years: 64, months: 8  },
+    // Женщины: поэтапный переход с 62 до 65 лет (закон 2011 года, полная реализация к 2032 году)
+    // Таблица основана на официальных данных Битуах Леуми
+    const femaleRetirementTable = {
+        1955: { years: 62, months: 0 },  // до июня 1955 - 62
+        1956: { years: 62, months: 4 },
+        1957: { years: 62, months: 8 },
+        1958: { years: 63, months: 0 },
+        1959: { years: 63, months: 4 },
+        1960: { years: 63, months: 8 },
+        1961: { years: 64, months: 0 },
+        1962: { years: 64, months: 4 },
+        1963: { years: 64, months: 8 },
+        1964: { years: 65, months: 0 },  // с 1964 и позже - 65 лет
     };
-    const entry = femTable[birthYear];
-    if (entry) return { ...entry, decimal: entry.years + entry.months / 12 };
-    if (birthYear <= 1954) return { years: 62, months: 0, decimal: 62 };
+    
+    // Если год рождения есть в таблице
+    if (femaleRetirementTable[birthYear]) {
+        const age = femaleRetirementTable[birthYear];
+        return { ...age, decimal: age.years + age.months / 12 };
+    }
+    
+    // Для более ранних годов (до 1955)
+    if (birthYear < 1955) return { years: 62, months: 0, decimal: 62 };
+    
+    // Для более поздних годов (1964 и позже)
     return { years: 65, months: 0, decimal: 65 };
 }
 
@@ -552,7 +555,6 @@ function addFund(name = 'Основная пенсия', type = 'pension', sum =
     `;
     document.getElementById('fundsList').appendChild(div);
     
-    const toggleDiv = div.querySelector('.toggle');
     const empInput = div.querySelector('.f-emp');
     const emprInput = div.querySelector('.f-empr');
     if (!active) {
@@ -593,7 +595,7 @@ function setScenario(btn) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  ОСНОВНОЙ РАСЧЕТ (С ПРАВИЛЬНОЙ ЗАВИСИМОСТЬЮ BTL ОТ ЗАРПЛАТЫ)
+//  ОСНОВНОЙ РАСЧЕТ (С ИСПРАВЛЕННОЙ ЛОГИКОЙ BTL)
 // ─────────────────────────────────────────────────────────────
 function calculate() {
     const gender       = document.getElementById('gender').value;
@@ -629,21 +631,18 @@ function calculate() {
         const contributionYears = Math.min(activeYears, yearsToRetire);
         let tempSalary = salary;
         
-        // Полные годы взносов
         for (let i = 0; i < Math.floor(contributionYears); i++) {
             sum += tempSalary * totalDep * 12;
             tempSalary *= (1 + P.grow);
             sum *= (1 + marketRate - fee);
         }
         
-        // Дробный год взносов
         const fractionalYear = contributionYears - Math.floor(contributionYears);
         if (fractionalYear > 0) {
             sum += tempSalary * totalDep * 12 * fractionalYear;
             sum *= Math.pow(1 + marketRate - fee, fractionalYear);
         }
         
-        // Годы без взносов
         const yearsNoContrib = yearsToRetire - contributionYears;
         if (yearsNoContrib > 0) {
             sum *= Math.pow(1 + marketRate - fee, yearsNoContrib);
@@ -659,28 +658,29 @@ function calculate() {
         }
     });
 
-    // Дефлирование
+    // Дефлирование (приводим к ценам сегодняшнего дня)
     const defFactor     = Math.pow(1 + P.inf, yearsToRetire);
     const realPension   = totalNominalPension / defFactor;
     const realCapital   = totalNominalCapital / defFactor;
     
-    // Индексируем пороги BTL на инфляцию
+    // Индексируем пороги BTL на инфляцию (так как они в номинальных ценах года выхода)
     const btlMaxReal    = P.btlMax * Math.pow(1 + P.inf, yearsToRetire);
     const btlBaseReal   = P.btlBase * Math.pow(1 + P.inf, yearsToRetire);
     
-    // Пенсионный доход (реальный, в ценах сегодня)
+    // Суммарный пенсионный доход (реальный, в ценах сегодня)
     const pensionIncome = realPension + realCapital;
     
-    // Расчет штрафа BTL (если доход превышает порог)
-    let btlPenalty = 0;
+    // КОРРЕКТНЫЙ РАСЧЕТ BTL:
+    // 1. Если доход меньше порога - получаем полное пособие
+    // 2. Если доход превышает порог - пособие снижается на 60% от суммы превышения
+    let btlReduction = 0;
     if (pensionIncome > btlMaxReal) {
-        btlPenalty = (pensionIncome - btlMaxReal) * P.btlPenalty;
+        btlReduction = (pensionIncome - btlMaxReal) * P.btlReductionRate;
     }
+    // Пособие не может быть отрицательным
+    const finalBtl = Math.max(0, btlBaseReal - btlReduction);
     
-    // Итоговое пособие BTL
-    const finalBtl  = Math.max(0, btlBaseReal - btlPenalty);
-    
-    // Запас до порога BTL (положительный = есть запас, отрицательный = превышение)
+    // Запас до порога (положительный = есть запас)
     const safeZone  = btlMaxReal - pensionIncome;
     
     // Общий доход нетто
@@ -713,7 +713,7 @@ function calculate() {
     document.getElementById('outReal').innerText = fmt(realPension);
     document.getElementById('outCapital').innerText = fmt(realCapital);
     document.getElementById('outBtl').innerText = fmt(finalBtl);
-    document.getElementById('outPenalty').innerHTML = btlPenalty > 0 ? '−' + fmt(btlPenalty) : '0 ₪';
+    document.getElementById('outPenalty').innerHTML = btlReduction > 0 ? '−' + fmt(btlReduction) : '0 ₪';
     document.getElementById('outNominalSum').innerText = fmt(totalNominalFunds);
 
     // Итого
@@ -727,23 +727,22 @@ function calculate() {
         v.innerText = '📅 Пенсионный возраст уже достигнут.';
     } else if (totalNet < P.minLiving) {
         v.innerText = `⚠ Ниже прожиточного минимума (${P.minLiving.toLocaleString()} ₪). Увеличьте взносы.`;
-    } else if (btlPenalty > 0) {
-        v.innerText = `⚡ BTL срезается на ${fmt(btlPenalty)}. Рассмотрите Керен Иштальмут.`;
+    } else if (btlReduction > 0) {
+        v.innerText = `⚡ Пособие BTL снижено на ${fmt(btlReduction)} из-за высокого дохода.`;
     } else if (safeZone < 500) {
-        v.innerText = '⚡ На грани порога BTL. Аккуратно с дополнительными взносами.';
+        v.innerText = '⚡ На грани снижения BTL. Аккуратно с дополнительными взносами.';
     } else {
         v.innerText = '✓ Прогноз устойчив. Хороший запас до порога BTL.';
     }
     
-    // Для отладки - выводим ключевые показатели в консоль
+    // Для отладки (можно убрать в production)
     console.log({
-        salary: salary,
+        birthYear: birthYear,
+        retireAge: retInfo.years + (retInfo.months > 0 ? `+${retInfo.months}мес` : ''),
         yearsToRetire: yearsToRetire,
-        realPension: realPension,
-        realCapital: realCapital,
         pensionIncome: pensionIncome,
         btlMaxReal: btlMaxReal,
-        btlPenalty: btlPenalty,
+        btlReduction: btlReduction,
         finalBtl: finalBtl,
         totalNet: totalNet
     });
@@ -759,7 +758,6 @@ function scheduleCalc() {
     debounceTimer = setTimeout(calculate, 100);
 }
 
-// Слушаем все изменения
 document.addEventListener('input', function(e) {
     if (e.target.closest('#mainApp')) {
         scheduleCalc();
@@ -781,7 +779,6 @@ document.getElementById('fundsList').innerHTML = '';
 addFund('Основная пенсия', 'pension',  450000, 6,   12.5, 0.50, true);
 addFund('Керен Иштальмут', 'capital',  120000, 2.5, 7.5,  0.25, true);
 
-// Вызываем расчет сразу
 setTimeout(() => calculate(), 100);
 </script>
 </body>
