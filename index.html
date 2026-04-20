@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пенсионный Навигатор v2.3</title>
+    <title>Пенсионный Навигатор v2.4</title>
     <style>
         :root { --p-blue: #2c3e50; --a-green: #27ae60; --error: #e74c3c; --bg: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--p-blue); padding: 20px; line-height: 1.5; }
@@ -19,13 +19,18 @@
 
         /* Ввод фондов */
         .funds-section { border: 1px solid #e2e8f0; padding: 25px; border-radius: 12px; }
-        .fund-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 40px; gap: 15px; margin-bottom: 15px; align-items: start; background: #fff; padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .fund-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 40px; gap: 12px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; align-items: end; }
         .input-field { display: flex; flex-direction: column; }
-        .input-field label { font-size: 0.75em; color: #64748b; margin-bottom: 4px; font-weight: bold; }
-        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95em; }
+        .input-field label { font-size: 0.7em; color: #64748b; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9em; }
 
         .btn-add { background: #34495e; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-weight: bold; }
-        .btn-remove { background: #fee2e2; color: #ef4444; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; height: 40px; align-self: end; }
+        .btn-remove { background: #fee2e2; color: #ef4444; border: none; border-radius: 6px; cursor: pointer; height: 38px; }
+
+        /* Оптимизация */
+        #optimizationBlock { margin-top: 30px; display: none; background: #fff4e5; border: 1px solid #ffd59f; padding: 20px; border-radius: 10px; }
+        .opt-item { margin-bottom: 10px; padding-left: 25px; position: relative; font-size: 0.95em; }
+        .opt-item::before { content: '🚀'; position: absolute; left: 0; }
 
         /* Панель результатов */
         .sticky-results { position: sticky; top: 20px; }
@@ -34,19 +39,18 @@
         .res-line.total { border-top: 2px solid var(--a-green); border-bottom: none; font-size: 1.6em; color: #2ecc71; margin-top: 15px; padding-top: 15px; }
         .goal-status { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
         
-        .calc-trigger { width: 100%; background: var(--a-green); color: white; border: none; padding: 20px; border-radius: 8px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
-        .calc-trigger:hover { background: #219150; }
+        .calc-trigger { width: 100%; background: var(--a-green); color: white; border: none; padding: 20px; border-radius: 8px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 25px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="guide-box">
-        <h3>🚀 Инструкция: Найдите свои реальные деньги</h3>
+        <h3>📊 Инструкция: Соберите свою пенсионную картину</h3>
         <div class="guide-grid">
-            <div class="step-card">1. <a href="https://itur.mof.gov.il/" target="_blank">Har HaKesef</a>: Найти все счета.</div>
-            <div class="step-card">2. <a href="https://har-bituach.mof.gov.il/" target="_blank">Har HaBituach</a>: Проверить страховки.</div>
-            <div class="step-card">3. Личный кабинет фонда: Выписать <b>Прогноз</b> и <b>Макдем</b>.</div>
+            <div class="step-card">1. <a href="https://itur.mof.gov.il/" target="_blank">Har HaKesef</a>: Найдите названия всех касс и суммы.</div>
+            <div class="step-card">2. <a href="https://har-bituach.mof.gov.il/" target="_blank">Har HaBituach</a>: Проверьте страховки (дубли снижают пенсию).</div>
+            <div class="step-card">3. Кабинет фонда: Выпишите <b>Торговое название</b>, <b>Сумму</b> и <b>Макдем</b>.</div>
         </div>
     </div>
 
@@ -58,37 +62,38 @@
                     <input type="number" id="birthYear" value="1965">
                 </div>
                 <div class="input-field">
-                    <label>ЖЕЛАЕМЫЙ ДОХОД (ЦЕЛЬ), ₪</label>
+                    <label>ЦЕЛЬ НЕТТО В МЕСЯЦ, ₪</label>
                     <input type="number" id="targetIncome" value="10000">
                 </div>
             </div>
 
-            <h3 style="margin-bottom:15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">📊 Ваши пенсионные активы</h3>
+            <h3 style="margin-bottom:15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">🏦 Список ваших пенсионных фондов</h3>
             <div id="fundsContainer" class="funds-section">
                 </div>
             <button class="btn-add" onclick="addFundRow()">+ ДОБАВИТЬ ФОНД / КАССУ</button>
 
-            <button class="calc-trigger" onclick="runEngine()">Выполнить расчет реальности</button>
+            <button class="calc-trigger" onclick="runEngine()">Выполнить расчет и анализ</button>
+
+            <div id="optimizationBlock">
+                <h3 style="margin-top:0; color: #d35400;">📈 ШАГИ 8-9: Оптимизация вашей пенсии</h3>
+                <div id="optList"></div>
+            </div>
         </div>
 
         <div class="sticky-results">
             <div class="res-card">
-                <h3 style="margin-top:0; color: #bdc3c7; font-size: 0.9em; text-transform: uppercase;">РЕАЛЬНЫЙ РАСЧЕТ (ФАКТ)</h3>
+                <h3 style="margin-top:0; color: #bdc3c7; font-size: 0.8em; text-transform: uppercase;">ИТОГОВЫЙ РАСЧЕТ (РЕАЛЬНОСТЬ)</h3>
                 
-                <div class="res-line"><span>Чистая пенсия (фонды):</span> <span id="outFunds">0 ₪</span></div>
+                <div class="res-line"><span>Пенсия (брутто всех фондов):</span> <span id="outBrutto">0 ₪</span></div>
+                <div class="res-line"><span>Налоговый вычет (оценка):</span> <span id="outTax">0 ₪</span></div>
                 <div class="res-line"><span>Битуах Леуми (Зикна):</span> <span id="outBtl">0 ₪</span></div>
-                <div class="res-line"><span>Налоговые льготы (Птур):</span> <span id="outTax">0 ₪</span></div>
                 
                 <div class="res-line total">
-                    <span>ИТОГО НА РУКИ:</span>
+                    <span>ИТОГО НЕТТО:</span>
                     <span id="outNetto">0 ₪</span>
                 </div>
 
                 <div id="goalStatus" class="goal-status" style="display:none;"></div>
-                
-                <div style="margin-top: 20px; font-size: 0.8em; color: #94a3b8;">
-                    * Расчет основан на данных вашей таблицы и введенных суммах. Сумма Битуах Леуми (~1,736₪) является базовой.
-                </div>
             </div>
         </div>
     </div>
@@ -103,19 +108,23 @@
         row.className = 'fund-row';
         row.innerHTML = `
             <div class="input-field">
-                <label>ТИП ФОНДА</label>
+                <label>НАЗВАНИЕ ФОНДА</label>
+                <input type="text" class="f-name" placeholder="Напр: Harel">
+            </div>
+            <div class="input-field">
+                <label>ТИП</label>
                 <select class="f-type">
                     <option value="new">Пенсия (Новая)</option>
-                    <option value="old">Битуах Менаалим (Старый)</option>
+                    <option value="old">Битуах Менаалим</option>
                     <option value="gemel">Купат Гемель</option>
                 </select>
             </div>
             <div class="input-field">
-                <label>НАКОПЛЕНО (₪)</label>
+                <label>СУММА (₪)</label>
                 <input type="number" class="f-sum" placeholder="0">
             </div>
             <div class="input-field">
-                <label>МАКДЕМ (ФАКТ)</label>
+                <label>МАКДЕМ</label>
                 <input type="number" class="f-makdem" placeholder="Авто">
             </div>
             <button class="btn-remove" onclick="this.parentElement.remove()">×</button>
@@ -123,7 +132,6 @@
         container.appendChild(row);
     }
 
-    // Первая строка при загрузке
     addFundRow();
 
     async function runEngine() {
@@ -132,15 +140,18 @@
             const birthYear = parseInt(document.getElementById('birthYear').value);
             const target = parseFloat(document.getElementById('targetIncome').value);
             
-            let totalPensionBrutto = 0;
+            let totalBrutto = 0;
+            let recommendations = [];
+            let hasOldPolicy = false;
+
             const rows = document.querySelectorAll('.fund-row');
 
             rows.forEach(row => {
+                const name = row.querySelector('.f-name').value || "Фонд";
                 const sum = parseFloat(row.querySelector('.f-sum').value) || 0;
                 const type = row.querySelector('.f-type').value;
                 let makdem = parseFloat(row.querySelector('.f-makdem').value);
 
-                // Если макдем не введен, берем из справочника
                 if (!makdem) {
                     const mRow = makdemData.find(r => r[0] == birthYear);
                     if (mRow) {
@@ -148,37 +159,52 @@
                     } else { makdem = 200; }
                 }
 
-                totalPensionBrutto += (sum / makdem);
+                if (type === 'old') hasOldPolicy = true;
+                totalBrutto += (sum / makdem);
             });
 
-            // Налоги (упрощенно: Птур 67% от 9430)
+            // Налоги и БЛ
+            const btl = 1736;
             const ptur = 9430 * 0.67;
-            const taxable = Math.max(0, totalPensionBrutto - ptur);
-            const taxEstimated = taxable * 0.10; // 10% налог на остаток
-            
-            const btlBase = 1736;
-            const realNetto = (totalPensionBrutto - taxEstimated) + btlBase;
+            const taxable = Math.max(0, totalBrutto - ptur);
+            const tax = taxable * 0.1;
+            const net = (totalBrutto - tax) + btl;
 
-            // Вывод данных
-            document.getElementById('outFunds').innerText = (totalPensionBrutto - taxEstimated).toFixed(0) + ' ₪';
-            document.getElementById('outBtl').innerText = btlBase + ' ₪';
-            document.getElementById('outTax').innerText = ptur.toFixed(0) + ' ₪';
-            document.getElementById('outNetto').innerText = realNetto.toFixed(0) + ' ₪';
+            // Вывод
+            document.getElementById('outBrutto').innerText = totalBrutto.toFixed(0) + ' ₪';
+            document.getElementById('outTax').innerText = tax.toFixed(0) + ' ₪';
+            document.getElementById('outBtl').innerText = btl + ' ₪';
+            document.getElementById('outNetto').innerText = net.toFixed(0) + ' ₪';
 
-            // Статус цели
+            // Анализ цели
             const statusDiv = document.getElementById('goalStatus');
             statusDiv.style.display = 'block';
-            const diff = realNetto - target;
+            const diff = net - target;
 
-            if (diff >= 0) {
-                statusDiv.style.background = 'rgba(39, 174, 96, 0.2)';
-                statusDiv.style.color = '#2ecc71';
-                statusDiv.innerHTML = `✅ ЦЕЛЬ ДОСТИГНУТА<br><small>Запас: +${diff.toFixed(0)} ₪</small>`;
+            // ГЕНЕРАЦИЯ ОПТИМИЗАЦИИ (Шаги 8-9)
+            if (diff < 0) {
+                recommendations.push(`Дефицит составляет <b>${Math.abs(diff).toFixed(0)} ₪</b>. Рассмотрите возможность увеличения ежемесячных взносов на 2-3%.`);
+                recommendations.push(`Проверьте комиссии (Dmi Nihul). Снижение комиссии с 0.5% до 0.25% может добавить к вашей пенсии до 15% за 10 лет.`);
+                statusDiv.style.background = '#fee2e2'; statusDiv.style.color = '#ef4444';
+                statusDiv.innerHTML = `❌ ДЕФИЦИТ: ${Math.abs(diff).toFixed(0)} ₪`;
             } else {
-                statusDiv.style.background = 'rgba(231, 76, 60, 0.2)';
-                statusDiv.style.color = '#ff7675';
-                statusDiv.innerHTML = `❌ ДЕФИЦИТ: ${Math.abs(diff).toFixed(0)} ₪<br><small>Нужна оптимизация (Шаги 8-9)</small>`;
+                statusDiv.style.background = '#e8f5e9'; statusDiv.style.color = '#2e7d32';
+                statusDiv.innerHTML = `✅ ЦЕЛЬ ДОСТИГНУТА`;
             }
+
+            if (rows.length > 2) {
+                recommendations.push(`У вас более 2-х фондов. Объединение касс поможет избежать лишних страховых вычетов и упростит управление.`);
+            }
+            if (hasOldPolicy) {
+                recommendations.push(`Обнаружен "Битуах Менаалим". Обязательно сравните его доходность с новыми пенсионными фондами. Иногда высокий макдем не перекрывает низкую доходность старого полиса.`);
+            }
+            recommendations.push(`ШАГ 10: Установите напоминание проверять <b>Har HaKesef</b> раз в год. Забытые деньги теряют стоимость из-за инфляции.`);
+
+            // Отображение рекомендаций
+            const optBlock = document.getElementById('optimizationBlock');
+            const optList = document.getElementById('optList');
+            optList.innerHTML = recommendations.map(text => `<div class="opt-item">${text}</div>`).join('');
+            optBlock.style.display = 'block';
 
         } catch (e) { alert("Ошибка: " + e.message); }
     }
@@ -190,6 +216,5 @@
         return text.split('\n').map(r => r.split(',').map(c => c.replace(/"/g, '').trim()));
     }
 </script>
-
 </body>
 </html>
