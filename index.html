@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pension Navigator 4.8 — Исправленный</title>
+    <title>Pension Navigator 4.9 — Полностью исправленный</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Libre+Baskerville:wght@400;700&display=swap');
 
@@ -37,7 +37,6 @@
 
         .container { max-width: 1100px; margin: 0 auto; }
 
-        /* ── MASTHEAD ── */
         .masthead {
             display: flex;
             justify-content: space-between;
@@ -51,7 +50,6 @@
         .masthead h1 { font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
         .masthead-sub { font-family: var(--mono); font-size: 10px; color: var(--text-light); }
 
-        /* ── STICKY NAV ── */
         .header-nav {
             position: sticky; top: 8px; z-index: 100;
             background: var(--text);
@@ -75,7 +73,6 @@
             .stat-item:nth-child(2) { border: none; }
         }
 
-        /* ── CARDS ── */
         .card {
             background: var(--card);
             padding: 22px;
@@ -95,7 +92,6 @@
             border-bottom: 1px solid var(--border);
         }
 
-        /* ── FORM ── */
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
 
         label { display: block; font-family: var(--mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-light); margin-bottom: 4px; }
@@ -118,7 +114,6 @@
         .err-msg { font-family: var(--mono); font-size: 9px; color: var(--danger); margin-top: 3px; display: none; }
         .err-msg.show { display: block; }
 
-        /* ── SCENARIO BAR ── */
         .scenario-bar { display: flex; gap: 8px; margin-bottom: 16px; }
         .scen-btn {
             font-family: var(--mono); font-size: 10px; font-weight: 600;
@@ -129,7 +124,6 @@
         }
         .scen-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-        /* ── FUND ITEM ── */
         .fund-item {
             background: #faf9f6;
             border: 1px solid var(--border);
@@ -151,7 +145,6 @@
 
         .fund-item.inactive { border-left-color: var(--border); opacity: .6; }
 
-        /* toggle switch */
         .toggle-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .toggle-wrap > span { font-family: var(--mono); font-size: 8px; text-transform: uppercase; color: var(--text-light); }
         .toggle {
@@ -167,7 +160,6 @@
         }
         .toggle.on::after { transform: translateX(16px); }
 
-        /* ── RESULTS ── */
         .results-grid {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
@@ -203,7 +195,6 @@
 
         .footnote { font-family: var(--mono); font-size: 9px; color: var(--text-light); margin-top: 12px; line-height: 1.7; }
 
-        /* ── INFO GRID ── */
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 8px; }
         .info-card { background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: 4px; }
         .info-card h4 { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 7px; }
@@ -213,7 +204,6 @@
         .info-card.info { border-left: 3px solid var(--primary); background: #eef2fb; }
         .info-card.info h4 { color: var(--primary); }
 
-        /* ── BUTTONS ── */
         .btn {
             font-family: var(--mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
             padding: 9px 16px; border-radius: 3px; border: none; cursor: pointer; transition: opacity .15s;
@@ -223,13 +213,23 @@
         .btn-secondary { background: #e8e4da; color: var(--text); }
         .btn-danger    { background: transparent; color: var(--danger); font-size: 20px; padding: 0 4px; line-height: 1; }
 
-        /* ── ERROR BANNER ── */
         .error-banner {
             display: none; background: var(--danger-bg); border: 1px solid #f5c2c2;
             border-radius: 3px; padding: 10px 14px; margin-bottom: 14px;
             font-family: var(--mono); font-size: 10px; color: var(--danger);
         }
         .error-banner.show { display: block; }
+        
+        .debug-info {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text-light);
+            margin-top: 8px;
+            padding: 8px;
+            background: #f0ede6;
+            border-radius: 3px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -237,10 +237,9 @@
 
     <div class="masthead">
         <h1>Pension Navigator</h1>
-        <span class="masthead-sub">v4.8 — IL / 2025 (исправленный)</span>
+        <span class="masthead-sub">v4.9 — IL / 2025 (полностью исправленный)</span>
     </div>
 
-    <!-- STICKY NAV -->
     <div class="header-nav">
         <div class="stat-item">
             <span>Возраст выхода</span>
@@ -262,7 +261,6 @@
 
     <div id="errorBanner" class="error-banner"></div>
 
-    <!-- 01 PROFILE -->
     <div class="card">
         <h3>01 — Параметры</h3>
         <div class="grid-inputs">
@@ -280,7 +278,7 @@
             </div>
             <div>
                 <label>Зарплата брутто (₪/мес)</label>
-                <input id="salary" type="number" value="12000" min="0">
+                <input id="salary" type="number" value="12000" min="0" step="500">
                 <div class="err-msg" id="salaryErr">Введите положительное число</div>
             </div>
             <div>
@@ -292,7 +290,6 @@
         </div>
     </div>
 
-    <!-- 02 SCENARIO -->
     <div class="card">
         <h3>02 — Сценарий рынка</h3>
         <div class="scenario-bar">
@@ -305,14 +302,12 @@
         </p>
     </div>
 
-    <!-- 03 ASSETS -->
     <div class="card">
         <h3>03 — Активы</h3>
         <div id="fundsList"></div>
         <button class="btn btn-secondary" onclick="addFund()" style="margin-top:14px;">+ Добавить актив</button>
     </div>
 
-    <!-- 04 RESULTS -->
     <div class="results-grid">
         <div class="card" style="margin-bottom:0">
             <h3>04 — Анализ выплат (цены сегодня)</h3>
@@ -340,7 +335,7 @@
                 * Инфляция 2.5% / год · Рост ЗП 2% / год в период взносов<br>
                 * Макдем: официальная таблица Маслаки 2024 (с экстраполяцией)<br>
                 * Штраф BTL: 60% от превышения порога 9,208 ₪ (индексируется на инфляцию)<br>
-                * Исправлена логика накопления и индексация порогов BTL
+                * BTL и запас зависят от пенсионного дохода, который растет с зарплатой
             </p>
         </div>
 
@@ -352,7 +347,6 @@
         </div>
     </div>
 
-    <!-- INFO -->
     <div class="info-grid">
         <div class="info-card info">
             <h4>Где взять данные?</h4>
@@ -372,26 +366,25 @@
         </div>
     </div>
 
-</div><!-- /container -->
+</div>
 
 <script>
 // ─────────────────────────────────────────────────────────────
 //  КОНСТАНТЫ
 // ─────────────────────────────────────────────────────────────
 const P = {
-    inf:        0.025,
-    grow:       0.02,
-    btlBase:    1736,
-    btlMax:     9208,
-    btlPenalty: 0.60,
+    inf:        0.025,  // инфляция 2.5%
+    grow:       0.02,   // рост зарплаты 2%
+    btlBase:    1736,   // базовое пособие BTL (2024)
+    btlMax:     9208,   // максимальный доход до штрафа (2024)
+    btlPenalty: 0.60,   // штраф 60% от превышения
     minLiving:  4800,   // прожиточный минимум (₪/мес, 2024)
 };
 
-let marketRate = 0.05; // изменяется кнопками сценария
+let marketRate = 0.05;
 
 // ─────────────────────────────────────────────────────────────
-//  ТАБЛИЦА МАКДЕМ (Маслака 2024, коэф. аннуитета)
-//  Формат: [год рождения, pension_м, pension_ж, manager_м, manager_ж]
+//  ТАБЛИЦА МАКДЕМ
 // ─────────────────────────────────────────────────────────────
 const MAKDEM = [
     [1940, 159, 176, 162, 178],
@@ -431,11 +424,9 @@ const MAKDEM = [
 ];
 
 function getMakdem(birthYear, gender, type) {
-    // Экстраполяция для годов после 1990
     if (birthYear > 1990) {
         const lastRow = MAKDEM[MAKDEM.length - 1];
         const extraYears = birthYear - 1990;
-        // Коэффициент роста макдема ~1.2 в год (аппроксимация)
         const growthRate = 1.2;
         
         if (type === 'manager') {
@@ -447,7 +438,6 @@ function getMakdem(birthYear, gender, type) {
         }
     }
     
-    // Для годов до 1990 - находим ближайший год в таблице
     const row = MAKDEM.reduce((best, cur) =>
         Math.abs(cur[0] - birthYear) < Math.abs(best[0] - birthYear) ? cur : best
     );
@@ -460,12 +450,10 @@ function getMakdem(birthYear, gender, type) {
 
 // ─────────────────────────────────────────────────────────────
 //  ПЕНСИОННЫЙ ВОЗРАСТ
-//  Возвращает { years: number, months: number, decimal: number }
 // ─────────────────────────────────────────────────────────────
 function getRetireAge(gender, birthYear) {
     if (gender === 'male') return { years: 67, months: 0, decimal: 67 };
 
-    // Таблица поэтапного перехода для женщин (по закону 2011 + поправки 2023)
     const femTable = {
         1955: { years: 62, months: 0  },
         1956: { years: 62, months: 4  },
@@ -480,7 +468,7 @@ function getRetireAge(gender, birthYear) {
     const entry = femTable[birthYear];
     if (entry) return { ...entry, decimal: entry.years + entry.months / 12 };
     if (birthYear <= 1954) return { years: 62, months: 0, decimal: 62 };
-    return { years: 65, months: 0, decimal: 65 }; // 1964+
+    return { years: 65, months: 0, decimal: 65 };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -564,7 +552,6 @@ function addFund(name = 'Основная пенсия', type = 'pension', sum =
     `;
     document.getElementById('fundsList').appendChild(div);
     
-    // Настройка начального состояния disabled для полей взносов
     const toggleDiv = div.querySelector('.toggle');
     const empInput = div.querySelector('.f-emp');
     const emprInput = div.querySelector('.f-empr');
@@ -583,7 +570,6 @@ function toggleFundActive(toggleEl) {
     const fundItem = toggleEl.closest('.fund-item');
     fundItem.classList.toggle('inactive', !toggleEl.classList.contains('on'));
 
-    // Включить/выключить поля взносов визуально
     const empInput = fundItem.querySelector('.f-emp');
     const emprInput = fundItem.querySelector('.f-empr');
     const isActive = toggleEl.classList.contains('on');
@@ -607,7 +593,7 @@ function setScenario(btn) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  РАСЧЁТ (ИСПРАВЛЕННЫЙ)
+//  ОСНОВНОЙ РАСЧЕТ (С ПРАВИЛЬНОЙ ЗАВИСИМОСТЬЮ BTL ОТ ЗАРПЛАТЫ)
 // ─────────────────────────────────────────────────────────────
 function calculate() {
     const gender       = document.getElementById('gender').value;
@@ -622,17 +608,14 @@ function calculate() {
     const retInfo   = getRetireAge(gender, birthYear);
     const retAge    = retInfo.decimal;
 
-    // Точный возраст сейчас
     const today     = new Date();
     const ageNow    = (today - birthDate) / (365.25 * 24 * 3600 * 1000);
     const yearsToRetire = Math.max(0, retAge - ageNow);
-
-    // Работать не дольше, чем до пенсии
     const activeYears = Math.min(yearsToWork, yearsToRetire);
 
-    let totalNominalFunds  = 0;  // накопленная сумма в пенсионных фондах на дату выхода (₪ номинал)
-    let totalNominalPension = 0; // ежемесячная пенсия из фондов (номинал, ₪/мес)
-    let totalNominalCapital = 0; // ежемесячный доход 4% с капитала (номинал, ₪/мес)
+    let totalNominalFunds  = 0;
+    let totalNominalPension = 0;
+    let totalNominalCapital = 0;
 
     document.querySelectorAll('.fund-item').forEach(f => {
         let sum          = Math.max(0, parseFloat(f.querySelector('.f-sum').value)  || 0);
@@ -643,30 +626,24 @@ function calculate() {
         const type       = f.querySelector('.f-type').value;
         const totalDep   = emp + empr;
         
-        // Количество лет, в которые будут взносы (не больше лет до пенсии)
         const contributionYears = Math.min(activeYears, yearsToRetire);
         let tempSalary = salary;
         
         // Полные годы взносов
         for (let i = 0; i < Math.floor(contributionYears); i++) {
-            // Взнос за год от текущей зарплаты
             sum += tempSalary * totalDep * 12;
-            // Рост зарплаты для следующего года
             tempSalary *= (1 + P.grow);
-            // Инвестиционный доход за год
             sum *= (1 + marketRate - fee);
         }
         
         // Дробный год взносов
         const fractionalYear = contributionYears - Math.floor(contributionYears);
         if (fractionalYear > 0) {
-            // Взнос за дробный год
             sum += tempSalary * totalDep * 12 * fractionalYear;
-            // Инвестиционный доход за дробный год
             sum *= Math.pow(1 + marketRate - fee, fractionalYear);
         }
         
-        // Годы без взносов (просто инвестиционный рост до пенсии)
+        // Годы без взносов
         const yearsNoContrib = yearsToRetire - contributionYears;
         if (yearsNoContrib > 0) {
             sum *= Math.pow(1 + marketRate - fee, yearsNoContrib);
@@ -675,7 +652,6 @@ function calculate() {
         totalNominalFunds += sum;
         
         if (type === 'capital') {
-            // Правило 4% SWR: ежемесячный доход
             totalNominalCapital += sum * 0.04 / 12;
         } else {
             const makdem = getMakdem(birthYear, gender, type);
@@ -683,61 +659,67 @@ function calculate() {
         }
     });
 
-    // ── Дефлирование (каждый поток отдельно) ──────────────────
+    // Дефлирование
     const defFactor     = Math.pow(1 + P.inf, yearsToRetire);
-    const realPension   = totalNominalPension / defFactor;   // ₪/мес, цены сегодня
-    const realCapital   = totalNominalCapital / defFactor;   // ₪/мес, цены сегодня
-    const realFundsSum  = totalNominalFunds   / defFactor;   // сумма в фондах, цены сегодня
-
-    // ── BTL С ИНДЕКСАЦИЕЙ ПОРОГОВ ─────────────────────────────
-    // Индексируем пороги BTL на инфляцию до выхода на пенсию
-    const btlMaxReal = P.btlMax * Math.pow(1 + P.inf, yearsToRetire);
-    const btlBaseReal = P.btlBase * Math.pow(1 + P.inf, yearsToRetire);
+    const realPension   = totalNominalPension / defFactor;
+    const realCapital   = totalNominalCapital / defFactor;
     
+    // Индексируем пороги BTL на инфляцию
+    const btlMaxReal    = P.btlMax * Math.pow(1 + P.inf, yearsToRetire);
+    const btlBaseReal   = P.btlBase * Math.pow(1 + P.inf, yearsToRetire);
+    
+    // Пенсионный доход (реальный, в ценах сегодня)
     const pensionIncome = realPension + realCapital;
+    
+    // Расчет штрафа BTL (если доход превышает порог)
     let btlPenalty = 0;
     if (pensionIncome > btlMaxReal) {
         btlPenalty = (pensionIncome - btlMaxReal) * P.btlPenalty;
     }
+    
+    // Итоговое пособие BTL
     const finalBtl  = Math.max(0, btlBaseReal - btlPenalty);
-    const safeZone  = Math.max(0, btlMaxReal - pensionIncome);
+    
+    // Запас до порога BTL (положительный = есть запас, отрицательный = превышение)
+    const safeZone  = btlMaxReal - pensionIncome;
+    
+    // Общий доход нетто
     const totalNet  = realPension + realCapital + finalBtl;
 
     // ── ФОРМАТИРОВАНИЕ ────────────────────────────────────────
     const fmt  = n  => Math.round(n).toLocaleString('ru-RU') + ' ₪';
-    const fmtA = n  => Math.round(n).toLocaleString('ru-RU'); // без символа (для большого числа)
+    const fmtA = n  => Math.round(n).toLocaleString('ru-RU');
 
     // Верхняя панель
     const retLabel = retInfo.months > 0
         ? `${retInfo.years}л ${retInfo.months}м`
         : `${retInfo.years}`;
-    document.getElementById('navRetAge').innerText    = retLabel;
+    document.getElementById('navRetAge').innerText = retLabel;
     
-    // Красивое отображение лет до пенсии (месяцы для малых значений)
     const yearsLeftDisplay = yearsToRetire < 1 
         ? `${Math.round(yearsToRetire * 12)} мес` 
         : yearsToRetire.toFixed(1);
     document.getElementById('navYearsLeft').innerText = yearsLeftDisplay;
 
     const szEl = document.getElementById('navSafeZone');
-    szEl.innerText   = fmt(safeZone);
-    szEl.className   = safeZone > 500 ? 'ok' : 'bad';
+    szEl.innerText = safeZone > 0 ? fmt(safeZone) : '−' + fmt(Math.abs(safeZone));
+    szEl.className = safeZone > 500 ? 'ok' : (safeZone > 0 ? 'ok' : 'bad');
 
     const ntEl = document.getElementById('navTotal');
     ntEl.innerText = fmt(totalNet);
     ntEl.className = totalNet >= P.minLiving ? 'ok' : 'bad';
 
     // Детализация
-    document.getElementById('outReal').innerText      = fmt(realPension);
-    document.getElementById('outCapital').innerText   = fmt(realCapital);
-    document.getElementById('outBtl').innerText       = fmt(finalBtl);
-    document.getElementById('outPenalty').innerText   = btlPenalty > 0 ? '−' + fmt(btlPenalty) : '0 ₪';
+    document.getElementById('outReal').innerText = fmt(realPension);
+    document.getElementById('outCapital').innerText = fmt(realCapital);
+    document.getElementById('outBtl').innerText = fmt(finalBtl);
+    document.getElementById('outPenalty').innerHTML = btlPenalty > 0 ? '−' + fmt(btlPenalty) : '0 ₪';
     document.getElementById('outNominalSum').innerText = fmt(totalNominalFunds);
 
     // Итого
     const mainEl = document.getElementById('mainTotal');
-    mainEl.innerText  = fmtA(totalNet);
-    mainEl.className  = 'total-amount ' + (totalNet >= P.minLiving ? 'good' : 'bad');
+    mainEl.innerText = fmtA(totalNet);
+    mainEl.className = 'total-amount ' + (totalNet >= P.minLiving ? 'good' : 'bad');
 
     // Вердикт
     const v = document.getElementById('verdict');
@@ -752,6 +734,19 @@ function calculate() {
     } else {
         v.innerText = '✓ Прогноз устойчив. Хороший запас до порога BTL.';
     }
+    
+    // Для отладки - выводим ключевые показатели в консоль
+    console.log({
+        salary: salary,
+        yearsToRetire: yearsToRetire,
+        realPension: realPension,
+        realCapital: realCapital,
+        pensionIncome: pensionIncome,
+        btlMaxReal: btlMaxReal,
+        btlPenalty: btlPenalty,
+        finalBtl: finalBtl,
+        totalNet: totalNet
+    });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -761,14 +756,19 @@ let debounceTimer;
 
 function scheduleCalc() {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(calculate, 300);
+    debounceTimer = setTimeout(calculate, 100);
 }
 
-document.addEventListener('input', e => {
-    if (e.target.closest('#mainApp')) scheduleCalc();
+// Слушаем все изменения
+document.addEventListener('input', function(e) {
+    if (e.target.closest('#mainApp')) {
+        scheduleCalc();
+    }
 });
-document.addEventListener('change', e => {
-    if (['gender', 'birthDate'].includes(e.target.id) || e.target.closest('.fund-item')) {
+
+document.addEventListener('change', function(e) {
+    if (['gender', 'birthDate', 'salary', 'yearsToWork'].includes(e.target.id) || 
+        e.target.closest('.fund-item')) {
         clearTimeout(debounceTimer);
         calculate();
     }
@@ -777,10 +777,12 @@ document.addEventListener('change', e => {
 // ─────────────────────────────────────────────────────────────
 //  ИНИЦИАЛИЗАЦИЯ
 // ─────────────────────────────────────────────────────────────
-// Очищаем список перед добавлением (на случай повторной инициализации)
 document.getElementById('fundsList').innerHTML = '';
 addFund('Основная пенсия', 'pension',  450000, 6,   12.5, 0.50, true);
 addFund('Керен Иштальмут', 'capital',  120000, 2.5, 7.5,  0.25, true);
+
+// Вызываем расчет сразу
+setTimeout(() => calculate(), 100);
 </script>
 </body>
 </html>
