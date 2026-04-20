@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ISR-PENSION-ENGINE v1.0</title>
+    <style>
+        body {
+            background-color: #000000;
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 20px;
+            line-height: 1.4;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 1px solid #00FF00;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+        }
+        h1 {
+            border-bottom: 2px solid #00FF00;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 1.5em;
+        }
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #004400;
+            padding: 15px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 0.8em;
+            margin-bottom: 5px;
+            color: #00AA00;
+        }
+        input, select {
+            background: #111;
+            border: 1px solid #00FF00;
+            color: #00FF00;
+            padding: 8px;
+            font-family: inherit;
+        }
+        button {
+            grid-column: span 2;
+            background: #004400;
+            color: #00FF00;
+            border: 1px solid #00FF00;
+            padding: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00FF00;
+            color: #000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #00FF00;
+            padding: 10px;
+            text-align: left;
+        }
+        th { background: #002200; }
+        .status-bar {
+            font-size: 0.7em;
+            margin-top: 20px;
+            color: #008800;
+            border-top: 1px dotted #008800;
+            padding-top: 5px;
+        }
+        .highlight { color: #FFF; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>PENSION_THREAT_ENGINE // ADMIN_INTERFACE</h1>
+    
+    <div class="input-section">
+        <div class="field">
+            <label>ГОД РОЖДЕНИЯ</label>
+            <input type="number" id="birthYear" value="1960">
+        </div>
+        <div class="field">
+            <label>ПОЛ</label>
+            <select id="gender">
+                <option value="male">MALE</option>
+                <option value="female">FEMALE</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>ПЕНСИОННЫЙ КАПИТАЛ (₪)</label>
+            <input type="number" id="capital" value="1500000">
+        </div>
+        <div class="field">
+            <label>ЗАРПЛАТА БРУТТО (₪)</label>
+            <input type="number" id="salary" value="0">
+        </div>
+        <div class="field">
+            <label>ТИП ФОНДА</label>
+            <select id="policyType">
+                <option value="new">NEW_FUND (ПОСЛЕ 2001)</option>
+                <option value="old">OLD_POLICY (ДО 2001)</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>СТАТУС РЕПАТРИАНТА</label>
+            <select id="isOleh">
+                <option value="no">НЕТ</option>
+                <option value="yes">ДА (МЕНЕЕ 48 МЕСЯЦЕВ)</option>
+            </select>
+        </div>
+        <button onclick="runEngine()">EXECUTE_CALCULATION</button>
+    </div>
+
+    <div id="results" style="display:none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>ПАРАМЕТР</th>
+                    <th>ЗНАЧЕНИЕ</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody">
+                </tbody>
+        </table>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+        SYSTEM READY // CONNECTION_ID: 1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw
+    </div>
+</div>
+
+<script>
+    const SHEET_ID = '1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw';
+    
+    async function runEngine() {
+        const btn = document.querySelector('button');
+        btn.innerText = 'PROCESSING...';
+        
+        try {
+            // 1. Fetching Data from Google Sheets
+            const taxData = await fetchSheetData('Tax_Engine_Data');
+            const makdemData = await fetchSheetData('Makdem_Reference');
+            
+            // 2. Logic Variables
+            const birthYear = parseInt(document.getElementById('birthYear').value);
+            const gender = document.getElementById('gender').value;
+            const capital = parseFloat(document.getElementById('capital').value);
+            const salary = parseFloat(document.getElementById('salary').value);
+            const isOld = document.getElementById('policyType').value === 'old';
+            const isOleh = document.getElementById('isOleh').value === 'yes';
+
+            // 3. Find Makdem
+            const makdemRow = makdemData.find(r => r[0] == birthYear);
+            let makdem = 200; // Default
+            if (makdemRow) {
+                if (gender === 'male') makdem = isOld ? makdemRow[3] : makdemRow[1];
+                else makdem = isOld ? makdemRow[4] : makdemRow[2];
+            }
+
+            // 4. Calculations
+            const pensionBrutto = capital / makdem;
+            
+            // Tax Logic (Simplified for Engine)
+            const taxStep1 = findInSheet(taxData, 'Tax_Step_1_Limit', 7010);
+            const cpValue = findInSheet(taxData, 'Credit_Point_Value', 242);
+            const exemptionCeiling = findInSheet(taxData, 'Exemption_Ceiling', 9430);
+            
+            // Exemption Clause 190 (67%)
+            const ptuar = exemptionCeiling * 0.67;
+            const taxablePension = Math.max(0, pensionBrutto - ptuar);
+            
+            // Credit Points
+            let cp = (gender === 'female' ? 2.75 : 2.25);
+            if (isOleh) cp += 1; // Simplified Oleh status
+            
+            const taxDiscount = cp * cpValue;
+            
+            // BTL Test (Mivchan Hachnasot)
+            const btlLimit = findInSheet(taxData, 'BTL_Income_Limit', 9208);
+            const baseZikna = findInSheet(taxData, 'Base_Zikna_Amount', 1736);
+            let actualZikna = baseZikna;
+            
+            if ((salary + pensionBrutto) > btlLimit) {
+                actualZikna = Math.max(0, baseZikna - ((salary + pensionBrutto - btlLimit) * 0.6));
+            }
+
+            // 5. Output
+            renderResults([
+                ['ПЕНСИЯ (БРУТТО)', pensionBrutto.toFixed(2) + ' ₪'],
+                ['МАКДЕМ (КОЭФФИЦИЕНТ)', makdem],
+                ['НАЛОГОВЫЙ ЩИТ (ПТУР)', ptuar.toFixed(2) + ' ₪'],
+                ['ЛЬГОТНЫЕ ЕДИНИЦЫ (CP)', cp],
+                ['ПОСОБИЕ БИТУАХ ЛЕУМИ', actualZikna.toFixed(2) + ' ₪'],
+                ['ИТОГО НЕТТО (ОЦЕНКА)', (pensionBrutto + actualZikna + salary).toFixed(2) + ' ₪']
+            ]);
+
+        } catch (e) {
+            alert('CRITICAL ERROR: ' + e.message);
+        } finally {
+            btn.innerText = 'EXECUTE_CALCULATION';
+        }
+    }
+
+    async function fetchSheetData(sheetName) {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+        const resp = await fetch(url);
+        const text = await resp.text();
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        return json.table.rows.map(r => r.c.map(cell => cell ? cell.v : null));
+    }
+
+    function findInSheet(data, key, def) {
+        const row = data.find(r => r[0] === key);
+        return row ? parseFloat(row[1]) : def;
+    }
+
+    function renderResults(data) {
+        const res = document.getElementById('results');
+        const body = document.getElementById('resultBody');
+        body.innerHTML = '';
+        data.forEach(row => {
+            body.innerHTML += `<tr><td>${row[0]}</td><td class="highlight">${row[1]}</td></tr>`;
+        });
+        res.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
