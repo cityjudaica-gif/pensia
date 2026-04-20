@@ -3,162 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пенсионный Навигатор Израиля v2.1</title>
+    <title>Пенсионный Навигатор v2.2</title>
     <style>
-        :root {
-            --primary-blue: #2c3e50;
-            --accent-green: #27ae60;
-            --warning-red: #e74c3c;
-            --bg-light: #f8fafc;
-        }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-light); color: var(--primary-blue); margin: 0; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        :root { --p-blue: #2c3e50; --a-green: #27ae60; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--p-blue); padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         
-        /* Секция инструкций */
-        .guide-section { background: #eef2f7; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 5px solid var(--accent-green); }
+        /* Инструкции */
+        .guide { background: #eef2f7; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid var(--a-green); }
         .guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.85em; }
-        .step { background: white; padding: 15px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .step h4 { margin: 0 0 10px 0; color: var(--accent-green); border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-        .step a { color: #2980b9; text-decoration: none; font-weight: bold; }
+        .step { background: white; padding: 12px; border-radius: 6px; }
+        .step a { color: #2980b9; font-weight: bold; text-decoration: none; }
 
-        /* Форма и Результаты */
-        .main-layout { display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .input-box { display: flex; flex-direction: column; }
-        label { font-weight: 600; margin-bottom: 5px; font-size: 0.9em; }
-        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; }
+        .main-layout { display: grid; grid-template-columns: 1fr 380px; gap: 30px; }
         
-        .action-btn { grid-column: span 2; background: var(--accent-green); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1.1em; margin-top: 10px; }
+        /* Секция фондов */
+        .funds-container { border: 1px solid #cbd5e1; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .fund-row { display: grid; grid-template-columns: 2fr 1.5fr 100px 40px; gap: 10px; margin-bottom: 10px; align-items: end; }
+        .fund-row input, .fund-row select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .add-btn { background: #34495e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        .remove-btn { background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; height: 35px; }
         
-        .results-box { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; position: sticky; top: 20px; }
-        .res-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3e5871; }
-        .res-total { font-size: 1.4em; color: #2ecc71; margin-top: 15px; border-top: 2px solid #2ecc71; padding-top: 10px; }
-        .deficit-warning { color: #ff7675; font-size: 0.9em; margin-top: 10px; font-style: italic; }
+        .hint { font-size: 0.75em; color: #64748b; margin-top: 4px; }
+
+        /* Итоги */
+        .results-card { background: var(--p-blue); color: white; padding: 25px; border-radius: 10px; position: sticky; top: 20px; }
+        .res-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #3e5871; }
+        .total-box { font-size: 1.5em; color: #2ecc71; margin-top: 20px; border-top: 2px solid #2ecc71; padding-top: 15px; text-align: center; }
+        .calc-btn { width: 100%; background: var(--a-green); color: white; border: none; padding: 18px; border-radius: 6px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Пенсионный Навигатор: От поиска денег до оптимизации</h1>
-
-    <div class="guide-section">
-        <h3>📋 Подготовьте данные для точного расчета:</h3>
+    <div class="guide">
+        <h3>📋 Подготовка данных (Шаги 1-3)</h3>
         <div class="guide-grid">
-            <div class="step">
-                <h4>Шаг 1. Найти деньги</h4>
-                <p>Проверьте <a href="https://itur.mof.gov.il/" target="_blank">הר הכסף</a>. Выпишите все фонды и суммы.</p>
-            </div>
-            <div class="step">
-                <h4>Шаг 2. Страховки</h4>
-                <p>Зайдите на <a href="https://har-bituach.mof.gov.il/" target="_blank">הר הביטוח</a>. Уберите дубликаты страховок.</p>
-            </div>
-            <div class="step">
-                <h4>Шаг 3. Прогноз</h4>
-                <p>В Личном кабинете (Harel, Migdal и др.) найдите <b>תחзиת קצבה</b> и <b>מקדם</b>.</p>
-            </div>
-            <div class="step">
-                <h4>Шаг 4. Оптимизация</h4>
-                <p>Проверьте комиссии (דמי ניяול). Объединение фондов дает +20% к выплатам.</p>
-            </div>
+            <div class="step"><b>1. Поиск:</b> <a href="https://itur.mof.gov.il/" target="_blank">הר הכסף</a> (Все фонды)</div>
+            <div class="step"><b>2. Страховки:</b> <a href="https://har-bituach.mof.gov.il/" target="_blank">הר הביטוח</a></div>
+            <div class="step"><b>3. Выписки:</b> Кабинеты Harel, Migdal, Menora.</div>
         </div>
     </div>
 
     <div class="main-layout">
-        <div class="input-side">
-            <div class="input-grid">
-                <div class="input-box">
-                    <label>Желаемый доход в месяц (₪)</label>
-                    <input type="number" id="targetIncome" value="10000">
+        <div class="inputs">
+            <div class="input-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                <div style="display:flex; flex-direction:column;">
+                    <label style="font-weight:600; font-size:0.9em;">Год рождения</label>
+                    <input type="number" id="birthYear" value="1965" style="padding:10px; border:1px solid #cbd5e1;">
                 </div>
-                <div class="input-box">
-                    <label>Накоплено во всех фондах (₪)</label>
-                    <input type="number" id="totalCapital" value="1200000">
+                <div style="display:flex; flex-direction:column;">
+                    <label style="font-weight:600; font-size:0.9em;">Цель в месяц (₪)</label>
+                    <input type="number" id="targetIncome" value="10000" style="padding:10px; border:1px solid #cbd5e1;">
                 </div>
-                <div class="input-box">
-                    <label>Реальный Макдем (из Личного кабинета)</label>
-                    <input type="number" id="userMakdem" placeholder="Оставьте пустым для автопоиска">
-                </div>
-                <div class="input-box">
-                    <label>Год рождения</label>
-                    <input type="number" id="birthYear" value="1965">
-                </div>
-                <div class="input-box">
-                    <label>Зарплата Брутто (если продолжите работать)</label>
-                    <input type="number" id="salary" value="0">
-                </div>
-                <div class="input-box">
-                    <label>Статус Олим Хадаш</label>
-                    <select id="isOleh">
-                        <option value="0">Нет</option>
-                        <option value="1">Да (Льготный период)</option>
-                    </select>
-                </div>
-                <button class="action-btn" onclick="runCalculation()">РАССЧИТАТЬ МОЮ ПЕНСИЮ</button>
             </div>
+
+            <h3 style="margin-bottom:10px;">📊 Ваши фонды</h3>
+            <div class="funds-container" id="fundsList">
+                </div>
+            <button class="add-btn" onclick="addFundRow()">+ ДОБАВИТЬ ЕЩЕ ОДИН ФОНД</button>
+
+            <button class="calc-btn" onclick="runGlobalCalc()">РАССЧИТАТЬ ОБЩИЙ ПРОГНОЗ</button>
         </div>
 
-        <div class="results-box" id="resBox">
-            <h3 style="margin-top:0">ИТОГОВЫЙ ПРОГНОЗ</h3>
-            <div class="res-item"><span>Пенсия из фондов:</span> <span id="outPension">0 ₪</span></div>
-            <div class="res-item"><span>Битуах Леуми:</span> <span id="outBtl">0 ₪</span></div>
-            <div class="res-item"><span>Налоговый Птур:</span> <span id="outPtur">0 ₪</span></div>
-            <div class="res-total"><span>ВСЕГО НЕТТО:</span> <span id="outTotal">0 ₪</span></div>
-            <div id="deficitDisplay" class="deficit-warning"></div>
+        <div class="results-card">
+            <h3 style="margin-top:0">ИТОГОВЫЙ ПЛАН</h3>
+            <div class="res-row"><span>Найдено фондов:</span> <span id="countF">0</span></div>
+            <div class="res-row"><span>Общий капитал:</span> <span id="totalC">0 ₪</span></div>
+            <div class="res-row"><span>Пенсия из фондов:</span> <span id="totalP">0 ₪</span></div>
+            <div class="res-row"><span>Битуах Леуми:</span> <span id="btlP">0 ₪</span></div>
+            <div class="total-box">
+                <div style="font-size:0.6em; color:#bdc3c7;">ИТОГО НЕТТО НА РУКИ:</div>
+                <span id="finalN">0 ₪</span>
+            </div>
+            <div id="defReport" style="margin-top:15px; text-align:center; font-size:0.9em;"></div>
         </div>
     </div>
 </div>
 
 <script>
     const SHEET_ID = '1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw';
+    
+    // Типы фондов с пояснениями
+    const fundTypes = {
+        'new': { label: 'Керен Пенсия (Новая)', hint: 'Стандартный фонд после 2001 г.' },
+        'old': { label: 'Битуах Менаалим (Старый)', hint: 'Полисы до 2001 г. с низким макдемом.' },
+        'gemel': { label: 'Купат Гемель', hint: 'Накопительный счет без страховки.' }
+    };
 
-    async function runCalculation() {
+    function addFundRow() {
+        const div = document.createElement('div');
+        div.className = 'fund-row';
+        div.innerHTML = `
+            <div>
+                <select class="f-type">
+                    ${Object.keys(fundTypes).map(k => `<option value="${k}">${fundTypes[k].label}</option>`).join('')}
+                </select>
+                <div class="hint">${fundTypes['new'].hint}</div>
+            </div>
+            <div>
+                <input type="number" class="f-sum" placeholder="Сумма (₪)">
+            </div>
+            <div>
+                <input type="number" class="f-makdem" placeholder="Макдем">
+            </div>
+            <button class="remove-btn" onclick="this.parentElement.parentElement.remove()">×</button>
+        `;
+        document.getElementById('fundsList').appendChild(div);
+    }
+
+    // Инициализация первой строки
+    addFundRow();
+
+    async function runGlobalCalc() {
         try {
-            // Загрузка констант из вашей таблицы (ID 1p40...unw)
-            const taxData = await fetchCSV('Tax_Engine_Data');
             const makdemData = await fetchCSV('Makdem_Reference');
-
-            const year = parseInt(document.getElementById('birthYear').value);
-            const cap = parseFloat(document.getElementById('totalCapital').value);
+            const birthYear = parseInt(document.getElementById('birthYear').value);
             const target = parseFloat(document.getElementById('targetIncome').value);
-            const userMakdem = parseFloat(document.getElementById('userMakdem').value);
-
-            // Логика Макдема (Пользовательский или из Таблицы)
-            let finalMakdem = userMakdem;
-            if (!finalMakdem) {
-                const row = makdemData.find(r => r[0] == year);
-                finalMakdem = row ? parseFloat(row[1]) : 200;
-            }
-
-            const pensionBrutto = cap / finalMakdem;
-            const btlBase = 1736; // База Битуах Леуми (из таблицы)
             
-            // Налоги (Птур 67%)
-            const pturLimit = 9430 * 0.67;
-            const taxable = Math.max(0, pensionBrutto - pturLimit);
-            const taxNetto = pensionBrutto - (taxable * 0.1); // Упрощенно 10% мас ахнаса
+            let totalCap = 0;
+            let totalPension = 0;
+            let count = 0;
 
-            const totalNetto = taxNetto + btlBase;
-            const deficit = target - totalNetto;
+            const rows = document.querySelectorAll('.fund-row');
+            rows.forEach(row => {
+                const sum = parseFloat(row.querySelector('.f-sum').value) || 0;
+                const type = row.querySelector('.f-type').value;
+                let makdem = parseFloat(row.querySelector('.f-makdem').value);
 
-            // Вывод
-            document.getElementById('outPension').innerText = taxNetto.toFixed(0) + ' ₪';
-            document.getElementById('outBtl').innerText = btlBase.toFixed(0) + ' ₪';
-            document.getElementById('outPtur').innerText = pturLimit.toFixed(0) + ' ₪';
-            document.getElementById('outTotal').innerText = totalNetto.toFixed(0) + ' ₪';
+                // Если макдем не введен, берем из таблицы
+                if (!makdem) {
+                    const mRow = makdemData.find(r => r[0] == birthYear);
+                    if (mRow) {
+                        makdem = (type === 'old') ? parseFloat(mRow[3]) : parseFloat(mRow[1]);
+                    } else { makdem = 200; }
+                }
 
-            const defDiv = document.getElementById('deficitDisplay');
-            if (deficit > 0) {
-                defDiv.innerHTML = `⚠️ Дефицит бюджета: <b>${deficit.toFixed(0)} ₪</b><br>Нужна оптимизация (см. Шаг 8-9)`;
+                totalCap += sum;
+                totalPension += (sum / makdem);
+                count++;
+            });
+
+            const btl = 1736; // База
+            const finalNetto = totalPension + btl;
+
+            document.getElementById('countF').innerText = count;
+            document.getElementById('totalC').innerText = totalCap.toLocaleString() + ' ₪';
+            document.getElementById('totalP').innerText = totalPension.toFixed(0) + ' ₪';
+            document.getElementById('btlP').innerText = btl + ' ₪';
+            document.getElementById('finalN').innerText = finalNetto.toFixed(0) + ' ₪';
+
+            const defDiv = document.getElementById('defReport');
+            const diff = target - finalNetto;
+            if (diff > 0) {
+                defDiv.innerHTML = `⚠️ Дефицит: <b>${diff.toFixed(0)} ₪</b><br>Нужна оптимизация комиссий или доп. взносы.`;
+                defDiv.style.color = "#ff7675";
             } else {
-                defDiv.innerHTML = `✅ Поздравляем! Ваш прогноз перекрывает цель.`;
+                defDiv.innerHTML = "✅ Цель достигнута!";
                 defDiv.style.color = "#2ecc71";
             }
 
-        } catch (e) { alert("Ошибка данных: " + e.message); }
+        } catch (e) { alert("Ошибка: " + e.message); }
     }
 
-    async function fetchCSV(sheetName) {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+    async function fetchCSV(name) {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${name}`;
         const res = await fetch(url);
         const text = await res.text();
         return text.split('\n').map(r => r.split(',').map(c => c.replace(/"/g, '').trim()));
