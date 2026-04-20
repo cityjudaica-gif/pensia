@@ -3,53 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пенсионный Навигатор v2.6</title>
+    <title>Пенсионный Стратег v2.7</title>
     <style>
-        :root { --p-blue: #2c3e50; --a-green: #27ae60; --warn: #f39c12; --error: #e74c3c; --bg: #f4f7f9; }
+        :root { --p-blue: #2c3e50; --a-green: #27ae60; --warn: #f39c12; --error: #e74c3c; --bg: #f0f4f8; }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--p-blue); margin: 0; padding: 10px; line-height: 1.4; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--p-blue); margin: 0; padding: 10px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
 
-        /* Шапка с лимитом */
-        .limit-header { position: sticky; top: 0; z-index: 100; background: #fff9db; border: 2px solid #ffe066; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .limit-value { color: var(--error); font-weight: bold; font-size: 1.2em; }
+        /* Верхний индикатор Выгоды */
+        .strategy-header { position: sticky; top: 0; z-index: 100; background: white; border: 2px solid var(--a-green); padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .stat-box { text-align: center; }
+        .stat-box span { display: block; font-size: 0.8em; color: #64748b; font-weight: bold; }
+        .stat-box b { font-size: 1.3em; color: var(--p-blue); }
+        .safe-zone { color: var(--a-green) !important; }
 
         .main-grid { display: flex; flex-wrap: wrap; gap: 20px; }
         .inputs-area { flex: 1; min-width: 300px; }
-        .sticky-results { flex: 0 0 350px; min-width: 300px; }
-        
-        @media (max-width: 900px) { .sticky-results { flex: 1 1 100%; } }
+        .sticky-results { flex: 0 0 360px; min-width: 300px; }
 
-        .input-row-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; }
-        .fund-row { display: grid; grid-template-columns: 1fr 1fr 1fr 80px 40px; gap: 8px; margin-bottom: 10px; padding: 10px; border: 1px solid #eee; border-radius: 8px; align-items: end; background: #fff; }
-        
-        @media (max-width: 600px) { .fund-row { grid-template-columns: 1fr 1fr; } .f-name { grid-column: span 2; } }
+        .section-title { border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin: 20px 0 15px; display: flex; justify-content: space-between; align-items: center; }
+        .fund-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 40px; gap: 10px; margin-bottom: 10px; padding: 12px; background: #f8fafc; border-radius: 8px; align-items: end; }
 
         .input-field { display: flex; flex-direction: column; gap: 4px; }
         label { font-size: 0.7em; font-weight: bold; color: #64748b; text-transform: uppercase; }
-        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9em; }
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
 
-        .res-card { background: var(--p-blue); color: white; padding: 20px; border-radius: 12px; position: sticky; top: 100px; }
-        .res-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #3e5871; font-size: 0.95em; }
-        .res-total { font-size: 1.8em; color: #2ecc71; padding-top: 15px; text-align: center; font-weight: bold; }
+        /* Вердикт выгоды */
+        .verdict-box { background: #e0f2fe; padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 5px solid #0284c7; }
+        
+        .res-card { background: var(--p-blue); color: white; padding: 25px; border-radius: 15px; position: sticky; top: 120px; }
+        .res-total { font-size: 2em; color: #2ecc71; text-align: center; margin: 15px 0; border-top: 1px solid #3e5871; padding-top: 15px; }
 
-        .btn-action { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-        .btn-calc { background: var(--a-green); color: white; font-size: 1.1em; }
-        .btn-add { background: #34495e; color: white; margin-bottom: 15px; }
+        @media (max-width: 768px) { .fund-row { grid-template-columns: 1fr 1fr; } .sticky-results { flex: 1 1 100%; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="limit-header">
-        📢 Порог зарплаты (Mivchan Hachnasot): 
-        <span id="topLimitDisplay" class="limit-value">Ожидание данных...</span>
-        <div style="font-size: 0.75em; color: #856404;">При превышении этой суммы вы теряете 60 агорот с каждого ₪ пособия.</div>
+    <div class="strategy-header">
+        <div class="stat-box">
+            <span>ВАШ БЕЗОПАСНЫЙ ПОРОГ (З/П)</span>
+            <b id="safeLimit" class="safe-zone">0 ₪</b>
+        </div>
+        <div class="stat-box">
+            <span>ЭФФЕКТИВНОСТЬ РАБОТЫ</span>
+            <b id="workEff">100%</b>
+        </div>
+        <div class="stat-box">
+            <span>БИТУАХ ЛЕУМИ К ВЫПЛАТЕ</span>
+            <b id="btlActual">0 ₪</b>
+        </div>
     </div>
 
     <div class="main-grid">
         <div class="inputs-area">
-            <div class="input-row-top">
+            <div class="section-title"><h3>👤 Личные данные</h3></div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
                 <div class="input-field">
                     <label>Пол</label>
                     <select id="gender" onchange="runEngine()">
@@ -61,45 +70,41 @@
                     <label>Год рождения</label>
                     <input type="number" id="birthYear" value="1960" oninput="runEngine()">
                 </div>
-                <div class="input-field">
-                    <label>Статус Олим</label>
-                    <select id="isOleh" onchange="runEngine()">
-                        <option value="0">Нет</option>
-                        <option value="1">Да (Льготный период)</option>
-                    </select>
-                </div>
-                <div class="input-field">
-                    <label>Цель Нетто, ₪</label>
-                    <input type="number" id="targetIncome" value="10000" oninput="runEngine()">
-                </div>
-                <div class="input-field" style="background: #fff3cd; padding: 5px; border-radius: 4px;">
-                    <label>Зарплата, ₪</label>
+                <div class="input-field" style="background: #eef2f7; padding: 5px; border-radius: 6px;">
+                    <label>ПРЕДПОЛАГАЕМАЯ ЗАРПЛАТА</label>
                     <input type="number" id="workSalary" value="0" oninput="runEngine()">
                 </div>
             </div>
 
-            <h3>🏦 Мои пенсионные фонды</h3>
+            <div class="section-title">
+                <h3>🏦 Пенсионные активы</h3>
+                <button onclick="addFund()" style="background:var(--p-blue); color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">+ Добавить</button>
+            </div>
             <div id="fundsList"></div>
-            <button class="btn-action btn-add" onclick="addFund()">+ Добавить фонд</button>
 
-            <div id="optimizationBlock" style="margin-top:20px; font-size: 0.85em; background: #f0fdf4; padding: 15px; border-radius: 8px; border-left: 4px solid var(--a-green);">
-                <h4 style="margin:0 0 10px 0; color:var(--a-green)">🚀 Оптимизация (Шаги 8-9)</h4>
-                <div id="optTips">Введите данные для получения советов...</div>
+            <div class="verdict-box" id="verdict">
+                <b>Анализ:</b> Введите данные, чтобы получить финансовый вердикт.
             </div>
         </div>
 
         <div class="sticky-results">
             <div class="res-card">
-                <h4 style="margin:0; color:#94a3b8; font-size:0.75em; text-transform: uppercase;">Итоговый доход в месяц</h4>
-                <div class="res-line"><span>Пенсия (Фонды):</span> <span id="outF">0 ₪</span></div>
-                <div class="res-line"><span>Битуах Леуми (Зикна):</span> <span id="outB">0 ₪</span></div>
-                <div class="res-line"><span>Зарплата (Чистая):</span> <span id="outS">0 ₪</span></div>
-                <div class="res-line"><span>Налоговые льготы (CP):</span> <span id="outCP">0 ₪</span></div>
+                <h4 style="margin:0; font-size:0.8em; color:#94a3b8;">ВАШ РЕАЛЬНЫЙ ДОХОД (НЕТТО)</h4>
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #3e5871;">
+                    <span>Пенсия (из фондов):</span> <span id="resF">0 ₪</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #3e5871;">
+                    <span>Битуах Леуми:</span> <span id="resB">0 ₪</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #3e5871;">
+                    <span>Зарплата (чистыми):</span> <span id="resS">0 ₪</span>
+                </div>
                 
-                <div class="res-total" id="outTotal">0 ₪</div>
-                <div id="goalStatus" style="text-align:center; margin-top:10px; font-size:0.85em; font-weight:bold;"></div>
+                <div class="res-total" id="resTotal">0 ₪</div>
                 
-                <button class="btn-action btn-calc" onclick="runEngine()">ОБНОВИТЬ РАСЧЕТ</button>
+                <p style="font-size:0.75em; color:#bdc3c7; text-align:center;">
+                    * Расчет включает Mivchan Hachnasot и подоходный налог (оценочно).
+                </p>
             </div>
         </div>
     </div>
@@ -112,11 +117,11 @@
         const div = document.createElement('div');
         div.className = 'fund-row';
         div.innerHTML = `
-            <div class="input-field f-name"><label>Фонд</label><input type="text" placeholder="Harel/Migdal" oninput="runEngine()"></div>
+            <div class="input-field"><label>Фонд</label><input type="text" class="f-name" placeholder="Напр: Harel" oninput="runEngine()"></div>
             <div class="input-field"><label>Тип</label><select class="f-type" onchange="runEngine()"><option value="new">Пенсия</option><option value="old">Битух Мен.</option></select></div>
-            <div class="input-field"><label>Сумма</label><input type="number" class="f-sum" value="0" oninput="runEngine()"></div>
+            <div class="input-field"><label>Сумма (₪)</label><input type="number" class="f-sum" value="0" oninput="runEngine()"></div>
             <div class="input-field"><label>Макдем</label><input type="number" class="f-makdem" placeholder="Авто" oninput="runEngine()"></div>
-            <button class="btn-action" style="background:#fee2e2; color:#ef4444; padding:5px; margin:0;" onclick="this.parentElement.remove(); runEngine();">×</button>
+            <button style="background:none; border:none; color:var(--error); font-size:1.5em; cursor:pointer;" onclick="this.parentElement.remove(); runEngine();">×</button>
         `;
         document.getElementById('fundsList').appendChild(div);
     }
@@ -125,11 +130,9 @@
     async function runEngine() {
         try {
             const makdemData = await fetchCSV('Makdem_Reference');
-            const birthYear = parseInt(document.getElementById('birthYear').value);
+            const year = parseInt(document.getElementById('birthYear').value);
             const gender = document.getElementById('gender').value;
             const salary = parseFloat(document.getElementById('workSalary').value) || 0;
-            const isOleh = document.getElementById('isOleh').value === '1';
-            const target = parseFloat(document.getElementById('targetIncome').value);
 
             let pensionBrutto = 0;
             document.querySelectorAll('.fund-row').forEach(row => {
@@ -137,58 +140,56 @@
                 const type = row.querySelector('.f-type').value;
                 let m = parseFloat(row.querySelector('.f-makdem').value);
                 if (!m) {
-                    const r = makdemData.find(x => x[0] == birthYear);
-                    if (r) {
-                        if (gender === 'male') m = (type === 'old' ? parseFloat(r[3]) : parseFloat(r[1]));
-                        else m = (type === 'old' ? parseFloat(r[4]) : parseFloat(r[2]));
-                    } else { m = 200; }
+                    const r = makdemData.find(x => x[0] == year);
+                    if (r) m = (gender === 'male') ? (type === 'old' ? r[3] : r[1]) : (type === 'old' ? r[4] : r[2]);
+                    else m = 200;
                 }
-                pensionBrutto += (sum / (m || 200));
+                pensionBrutto += (sum / m);
             });
 
-            // Лимиты Битуах Леуми (Проверка доходов)
-            const BTL_LIMIT = 9208; // Сумма из Таблицы
-            const BTL_BASE = 1736;
-            const maxFreeSalary = Math.max(0, BTL_LIMIT - pensionBrutto);
-            document.getElementById('topLimitDisplay').innerText = Math.round(maxFreeSalary) + ' ₪';
+            // Логика Битуах Леуми (2026)
+            const BTL_LIMIT = 9208; // Порог дохода
+            const BTL_FULL = 1736; // Базовое пособие
+            
+            const safeSalary = Math.max(0, BTL_LIMIT - pensionBrutto);
+            document.getElementById('safeLimit').innerText = Math.round(safeSalary).toLocaleString() + ' ₪';
 
-            let currentBtl = BTL_BASE;
+            let actualBtl = BTL_FULL;
+            let penalty = 0;
             if ((pensionBrutto + salary) > BTL_LIMIT) {
-                currentBtl = Math.max(0, BTL_BASE - ((pensionBrutto + salary - BTL_LIMIT) * 0.6));
+                penalty = (pensionBrutto + salary - BTL_LIMIT) * 0.6;
+                actualBtl = Math.max(0, BTL_FULL - penalty);
             }
+            document.getElementById('btlActual').innerText = Math.round(actualBtl).toLocaleString() + ' ₪';
 
-            // Налоги (Некудот Зикуй)
-            let creditPoints = (gender === 'female' ? 2.75 : 2.25);
-            if (isOleh) creditPoints += 1;
-            const cpValue = 242; // Стоимость одной точки
+            // Эффективность работы
+            let eff = 100;
+            if (salary > 0) {
+                const loss = penalty / salary;
+                eff = Math.max(0, (1 - loss - 0.1) * 100); // 0.1 - примерный налог
+            }
+            document.getElementById('workEff').innerText = Math.round(eff) + '%';
 
-            const totalNetto = pensionBrutto + currentBtl + (salary * 0.88); // Упрощенный налог на зарплату
+            // Итоговые суммы
+            const netSalary = salary * 0.9; // Чистая з/п после налогов
+            const totalNetto = pensionBrutto + actualBtl + netSalary;
 
-            // Вывод в UI
-            document.getElementById('outF').innerText = Math.round(pensionBrutto).toLocaleString() + ' ₪';
-            document.getElementById('outB').innerText = Math.round(currentBtl).toLocaleString() + ' ₪';
-            document.getElementById('outS').innerText = Math.round(salary * 0.88).toLocaleString() + ' ₪';
-            document.getElementById('outCP').innerText = (creditPoints * cpValue).toFixed(0) + ' ₪';
-            document.getElementById('outTotal').innerText = Math.round(totalNetto).toLocaleString() + ' ₪';
+            document.getElementById('resF').innerText = Math.round(pensionBrutto).toLocaleString() + ' ₪';
+            document.getElementById('resB').innerText = Math.round(actualBtl).toLocaleString() + ' ₪';
+            document.getElementById('resS').innerText = Math.round(netSalary).toLocaleString() + ' ₪';
+            document.getElementById('resTotal').innerText = Math.round(totalNetto).toLocaleString() + ' ₪';
 
-            // Статус цели
-            const gStatus = document.getElementById('goalStatus');
-            const diff = totalNetto - target;
-            if (diff >= 0) {
-                gStatus.style.color = 'var(--a-green)';
-                gStatus.innerText = `ЦЕЛЬ ДОСТИГНУТА (+${Math.round(diff)} ₪)`;
+            // Вердикт
+            const v = document.getElementById('verdict');
+            if (salary === 0) {
+                v.innerHTML = `💡 <b>Совет:</b> Вы можете работать и получать до <b>${Math.round(safeSalary)} ₪</b> дополнительно. В этом случае пособие Битуах Леуми сохранится на 100%.`;
+            } else if (salary <= safeSalary) {
+                v.innerHTML = `✅ <b>Отличный выбор:</b> Ваша зарплата находится в "зеленой зоне". Вы получаете максимум от государства и от работы.`;
             } else {
-                gStatus.style.color = 'var(--error)';
-                gStatus.innerText = `ДЕФИЦИТ: ${Math.round(Math.abs(diff))} ₪`;
+                v.innerHTML = `⚠️ <b>Финансовый риск:</b> Из-за высокой зарплаты вы теряете <b>${Math.round(penalty)} ₪</b> из пособия. Ваша реальная выгода от работы составляет всего <b>${Math.round(eff)}%</b>. Стоит ли это вашего времени?`;
             }
 
-            // Советы
-            let tips = `Ваш макдем настроен для ${gender === 'male' ? 'мужчины' : 'женщины'}. `;
-            if (salary > maxFreeSalary) tips += `<b style="color:var(--error)">Внимание:</b> Ваша зарплата снижает пособие БЛ. `;
-            else if (salary > 0) tips += `Зарплата в пределах нормы. `;
-            document.getElementById('optTips').innerHTML = tips;
-
-        } catch (e) { console.warn("Waiting for data..."); }
+        } catch (e) { console.warn("Расчет..."); }
     }
 
     async function fetchCSV(name) {
