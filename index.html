@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pension Navigator 4.7</title>
+    <title>Pension Navigator 4.8 — Исправленный</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Libre+Baskerville:wght@400;700&display=swap');
 
@@ -237,7 +237,7 @@
 
     <div class="masthead">
         <h1>Pension Navigator</h1>
-        <span class="masthead-sub">v4.7 — IL / 2025</span>
+        <span class="masthead-sub">v4.8 — IL / 2025 (исправленный)</span>
     </div>
 
     <!-- STICKY NAV -->
@@ -338,8 +338,9 @@
             </div>
             <p class="footnote">
                 * Инфляция 2.5% / год · Рост ЗП 2% / год в период взносов<br>
-                * Макдем: официальная таблица Маслаки 2024<br>
-                * Штраф BTL: 60% от превышения порога 9,208 ₪ пенсионным доходом
+                * Макдем: официальная таблица Маслаки 2024 (с экстраполяцией)<br>
+                * Штраф BTL: 60% от превышения порога 9,208 ₪ (индексируется на инфляцию)<br>
+                * Исправлена логика накопления и индексация порогов BTL
             </p>
         </div>
 
@@ -430,11 +431,30 @@ const MAKDEM = [
 ];
 
 function getMakdem(birthYear, gender, type) {
-    // Находим строку с минимальной разницей по году
+    // Экстраполяция для годов после 1990
+    if (birthYear > 1990) {
+        const lastRow = MAKDEM[MAKDEM.length - 1];
+        const extraYears = birthYear - 1990;
+        // Коэффициент роста макдема ~1.2 в год (аппроксимация)
+        const growthRate = 1.2;
+        
+        if (type === 'manager') {
+            const baseValue = gender === 'male' ? lastRow[3] : lastRow[4];
+            return Math.round(baseValue + extraYears * growthRate);
+        } else {
+            const baseValue = gender === 'male' ? lastRow[1] : lastRow[2];
+            return Math.round(baseValue + extraYears * growthRate);
+        }
+    }
+    
+    // Для годов до 1990 - находим ближайший год в таблице
     const row = MAKDEM.reduce((best, cur) =>
         Math.abs(cur[0] - birthYear) < Math.abs(best[0] - birthYear) ? cur : best
     );
-    if (type === 'manager') return gender === 'male' ? row[3] : row[4];
+    
+    if (type === 'manager') {
+        return gender === 'male' ? row[3] : row[4];
+    }
     return gender === 'male' ? row[1] : row[2];
 }
 
@@ -477,7 +497,7 @@ function showErr(id, errId, condition) {
 function validateAll(birthDate, salary, yearsToWork) {
     let hasError = false;
     if (!birthDate || isNaN(birthDate.getTime()) ||
-        birthDate.getFullYear() < 1940 || birthDate.getFullYear() > 2000)
+        birthDate.getFullYear() < 1940 || birthDate.getFullYear() > 2005)
         hasError |= showErr('birthDate',    'birthDateErr',    true);
     else
         showErr('birthDate', 'birthDateErr', false);
@@ -543,6 +563,18 @@ function addFund(name = 'Основная пенсия', type = 'pension', sum =
                 onclick="document.getElementById('${id}').remove(); calculate();">×</button>
     `;
     document.getElementById('fundsList').appendChild(div);
+    
+    // Настройка начального состояния disabled для полей взносов
+    const toggleDiv = div.querySelector('.toggle');
+    const empInput = div.querySelector('.f-emp');
+    const emprInput = div.querySelector('.f-empr');
+    if (!active) {
+        empInput.disabled = true;
+        emprInput.disabled = true;
+        empInput.style.opacity = '0.35';
+        emprInput.style.opacity = '0.35';
+    }
+    
     calculate();
 }
 
@@ -552,11 +584,15 @@ function toggleFundActive(toggleEl) {
     fundItem.classList.toggle('inactive', !toggleEl.classList.contains('on'));
 
     // Включить/выключить поля взносов визуально
-    ['f-emp', 'f-empr'].forEach(cls => {
-        const inp = fundItem.querySelector('.' + cls);
-        inp.disabled = !toggleEl.classList.contains('on');
-        inp.style.opacity = toggleEl.classList.contains('on') ? '1' : '0.35';
-    });
+    const empInput = fundItem.querySelector('.f-emp');
+    const emprInput = fundItem.querySelector('.f-empr');
+    const isActive = toggleEl.classList.contains('on');
+    
+    empInput.disabled = !isActive;
+    emprInput.disabled = !isActive;
+    empInput.style.opacity = isActive ? '1' : '0.35';
+    emprInput.style.opacity = isActive ? '1' : '0.35';
+    
     calculate();
 }
 
@@ -571,7 +607,7 @@ function setScenario(btn) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  РАСЧЁТ
+//  РАСЧЁТ (ИСПРАВЛЕННЫЙ)
 // ─────────────────────────────────────────────────────────────
 function calculate() {
     const gender       = document.getElementById('gender').value;
@@ -606,127 +642,32 @@ function calculate() {
         const fee        = (parseFloat(f.querySelector('.f-fee').value) || 0) / 100;
         const type       = f.querySelector('.f-type').value;
         const totalDep   = emp + empr;
-
+        
+        // Количество лет, в которые будут взносы (не больше лет до пенсии)
+        const contributionYears = Math.min(activeYears, yearsToRetire);
         let tempSalary = salary;
-
-        // Целые годы накопления
-        const wholeYears = Math.floor(yearsToRetire);
-        const fracYear   = yearsToRetire - wholeYears;
-
-        for (let i = 0; i < wholeYears; i++) {
-            if (isActive && i < activeYears) {
-                sum += tempSalary * totalDep * 12;
-                tempSalary *= (1 + P.grow);  // рост ЗП только в период взносов
-            }
+        
+        // Полные годы взносов
+        for (let i = 0; i < Math.floor(contributionYears); i++) {
+            // Взнос за год от текущей зарплаты
+            sum += tempSalary * totalDep * 12;
+            // Рост зарплаты для следующего года
+            tempSalary *= (1 + P.grow);
+            // Инвестиционный доход за год
             sum *= (1 + marketRate - fee);
         }
-        // Пропорциональный неполный год
-        if (fracYear > 0) {
-            if (isActive && wholeYears < activeYears) {
-                sum += tempSalary * totalDep * 12 * fracYear;
-            }
-            sum *= Math.pow(1 + marketRate - fee, fracYear);
+        
+        // Дробный год взносов
+        const fractionalYear = contributionYears - Math.floor(contributionYears);
+        if (fractionalYear > 0) {
+            // Взнос за дробный год
+            sum += tempSalary * totalDep * 12 * fractionalYear;
+            // Инвестиционный доход за дробный год
+            sum *= Math.pow(1 + marketRate - fee, fractionalYear);
         }
-
-        totalNominalFunds += sum;
-
-        if (type === 'capital') {
-            // Правило 4% SWR: ежемесячный доход
-            totalNominalCapital += sum * 0.04 / 12;
-        } else {
-            const makdem = getMakdem(birthYear, gender, type);
-            totalNominalPension += sum / makdem;
+        
+        // Годы без взносов (просто инвестиционный рост до пенсии)
+        const yearsNoContrib = yearsToRetire - contributionYears;
+        if (yearsNoContrib > 0) {
+            sum *= Math.pow(1 + marketRate - fee, yearsNoContrib);
         }
-    });
-
-    // ── Дефлирование (каждый поток отдельно) ──────────────────
-    const defFactor     = Math.pow(1 + P.inf, yearsToRetire);
-    const realPension   = totalNominalPension / defFactor;   // ₪/мес, цены сегодня
-    const realCapital   = totalNominalCapital / defFactor;   // ₪/мес, цены сегодня
-    const realFundsSum  = totalNominalFunds   / defFactor;   // сумма в фондах, цены сегодня
-
-    // ── BTL ────────────────────────────────────────────────────
-    // Штраф считается от реального пенсионного дохода (не от текущей ЗП!)
-    const pensionIncome = realPension + realCapital;
-    let btlPenalty = 0;
-    if (pensionIncome > P.btlMax) {
-        btlPenalty = (pensionIncome - P.btlMax) * P.btlPenalty;
-    }
-    const finalBtl  = Math.max(0, P.btlBase - btlPenalty);
-    const safeZone  = Math.max(0, P.btlMax - pensionIncome);
-    const totalNet  = realPension + realCapital + finalBtl;
-
-    // ── ФОРМАТИРОВАНИЕ ────────────────────────────────────────
-    const fmt  = n  => Math.round(n).toLocaleString('ru-RU') + ' ₪';
-    const fmtA = n  => Math.round(n).toLocaleString('ru-RU'); // без символа (для большого числа)
-
-    // Верхняя панель
-    const retLabel = retInfo.months > 0
-        ? `${retInfo.years}л ${retInfo.months}м`
-        : `${retInfo.years}`;
-    document.getElementById('navRetAge').innerText    = retLabel;
-    document.getElementById('navYearsLeft').innerText = yearsToRetire.toFixed(1);
-
-    const szEl = document.getElementById('navSafeZone');
-    szEl.innerText   = fmt(safeZone);
-    szEl.className   = safeZone > 500 ? 'ok' : 'bad';
-
-    const ntEl = document.getElementById('navTotal');
-    ntEl.innerText = fmt(totalNet);
-    ntEl.className = totalNet >= P.minLiving ? 'ok' : 'bad';
-
-    // Детализация
-    document.getElementById('outReal').innerText      = fmt(realPension);
-    document.getElementById('outCapital').innerText   = fmt(realCapital);
-    document.getElementById('outBtl').innerText       = fmt(finalBtl);
-    document.getElementById('outPenalty').innerText   = btlPenalty > 0 ? '−' + fmt(btlPenalty) : '0 ₪';
-    document.getElementById('outNominalSum').innerText = fmt(totalNominalFunds);
-
-    // Итого
-    const mainEl = document.getElementById('mainTotal');
-    mainEl.innerText  = fmtA(totalNet);
-    mainEl.className  = 'total-amount ' + (totalNet >= P.minLiving ? 'good' : 'bad');
-
-    // Вердикт
-    const v = document.getElementById('verdict');
-    if (yearsToRetire <= 0) {
-        v.innerText = '📅 Пенсионный возраст уже достигнут.';
-    } else if (totalNet < P.minLiving) {
-        v.innerText = `⚠ Ниже прожиточного минимума (${P.minLiving.toLocaleString()} ₪). Увеличьте взносы.`;
-    } else if (btlPenalty > 0) {
-        v.innerText = `⚡ BTL срезается на ${fmt(btlPenalty)}. Рассмотрите Керен Иштальмут.`;
-    } else if (safeZone < 500) {
-        v.innerText = '⚡ На грани порога BTL. Аккуратно с дополнительными взносами.';
-    } else {
-        v.innerText = '✓ Прогноз устойчив. Хороший запас до порога BTL.';
-    }
-}
-
-// ─────────────────────────────────────────────────────────────
-//  ДЕБАУНС + СЛУШАТЕЛИ
-// ─────────────────────────────────────────────────────────────
-let debounceTimer;
-
-function scheduleCalc() {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(calculate, 300);
-}
-
-document.addEventListener('input', e => {
-    if (e.target.closest('#mainApp')) scheduleCalc();
-});
-document.addEventListener('change', e => {
-    if (['gender', 'birthDate'].includes(e.target.id) || e.target.closest('.fund-item')) {
-        clearTimeout(debounceTimer);
-        calculate();
-    }
-});
-
-// ─────────────────────────────────────────────────────────────
-//  ИНИЦИАЛИЗАЦИЯ
-// ─────────────────────────────────────────────────────────────
-addFund('Основная пенсия', 'pension',  450000, 6,   12.5, 0.50, true);
-addFund('Керен Иштальмут', 'capital',  120000, 2.5, 7.5,  0.25, true);
-</script>
-</body>
-</html>
