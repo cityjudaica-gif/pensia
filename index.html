@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pension Navigator 3.8 — Ultimate</title>
+    <title>Pension Navigator 3.9 — Ultimate</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Libre+Baskerville:wght@400;700&display=swap');
 
@@ -11,6 +11,8 @@
             --primary: #1a4fad;
             --success: #0a6e4a;
             --success-bg: #e8f5f0;
+            --warning: #c45c00;
+            --warning-bg: #fff4e8;
             --danger: #b91c1c;
             --danger-bg: #fef2f2;
             --bg: #f5f4f0;
@@ -40,20 +42,18 @@
         .stat-item { text-align: center; }
         .stat-item span { display: block; font-family: var(--mono); font-size: 9px; color: #9c9888; text-transform: uppercase; margin-bottom: 2px; }
         .stat-item b { font-family: var(--mono); font-size: 16px; color: #f0ede6; }
-        .stat-item b.ok { color: #4ade80; }
-        .stat-item b.bad { color: #f87171; }
 
-        /* CARDS & FORMS */
+        /* CARDS */
         .card { background: var(--card); padding: 24px; border-radius: 4px; border: 1px solid var(--border); margin-bottom: 20px; }
         .card h3 { font-family: var(--mono); font-size: 11px; text-transform: uppercase; color: var(--text-light); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
         .status-tag { font-family: var(--mono); font-size: 9px; padding: 2px 7px; border-radius: 3px; background: #e8e4da; }
         .status-tag.ok { background: var(--success-bg); color: var(--success); }
 
+        /* FORMS */
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
         label { display: block; font-family: var(--mono); font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--text-light); margin-bottom: 5px; }
         input, select { width: 100%; padding: 9px 11px; border-radius: 3px; border: 1px solid var(--border); font-family: var(--mono); font-size: 13px; outline: none; }
         
-        /* FUND ITEM */
         .fund-item {
             background: #faf9f6; border: 1px solid var(--border); border-left: 3px solid var(--primary);
             padding: 18px; margin-top: 14px; display: grid;
@@ -61,15 +61,20 @@
         }
 
         /* RESULTS */
-        .results-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+        .results-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-bottom: 24px; }
         .result-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0ede6; }
         .total-card { background: var(--primary); color: white; padding: 30px; border-radius: 4px; text-align: center; }
         .total-amount { font-family: var(--mono); font-size: 38px; font-weight: 600; display: block; margin: 10px 0; }
-        .total-amount.good { color: #86efac; }
         
+        /* INFO BLOCKS */
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .info-card { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 4px; }
+        .info-card h4 { font-family: var(--mono); font-size: 10px; text-transform: uppercase; margin-bottom: 8px; }
+        .info-card p { font-size: 13px; color: var(--text-light); }
+        .info-card.warn { border-left: 3px solid var(--warning); background: var(--warning-bg); }
+
         .btn { font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; background: var(--text); color: #f0ede6; border: none; padding: 10px 18px; border-radius: 3px; cursor: pointer; margin-top: 14px; }
-        .delete-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 20px; align-self: end; padding-bottom: 5px; }
-        .hint { font-family: var(--mono); font-size: 9px; color: #9c9888; margin-top: 3px; }
+        .delete-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 20px; align-self: end; }
     </style>
 </head>
 <body>
@@ -77,13 +82,13 @@
 
     <div class="masthead">
         <h1>Pension Navigator</h1>
-        <span style="font-family:var(--mono); font-size:11px; color:var(--text-light)">v3.8 — Ashdod / 2026</span>
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-light)">v3.9 — Ashdod / 2026</span>
     </div>
 
     <div class="header-nav">
         <div class="stat-item"><span>Возраст выхода</span><b id="retAge">--</b></div>
-        <div class="stat-item"><span>«Безопасная» зона BTL</span><b id="safeZone">--</b></div>
-        <div class="stat-item"><span>Итого нетто / мес</span><b id="totalQuick">--</b></div>
+        <div class="stat-item"><span>Безопасная зона</span><b id="safeZone">--</b></div>
+        <div class="stat-item"><span>Итого нетто</span><b id="totalQuick">--</b></div>
     </div>
 
     <div class="card">
@@ -97,14 +102,14 @@
     </div>
 
     <div class="card">
-        <h3>02 — Активы <span id="dbStatus" class="status-tag">Загрузка данных...</span></h3>
+        <h3>02 — Активы <span id="dbStatus" class="status-tag">Проверка связи...</span></h3>
         <div id="fundsList"></div>
         <button class="btn" onclick="addFund()" style="background:#e8e4da; color:var(--text)">+ Добавить актив</button>
     </div>
 
     <div class="results-grid">
-        <div class="card">
-            <h3>03 — Детализация (цены сегодня)</h3>
+        <div class="card" style="margin-bottom:0">
+            <h3>03 — Детализация (в ценах сегодня)</h3>
             <div class="result-row"><span>Пенсия (номинал):</span><b id="outNominal">—</b></div>
             <div class="result-row"><span>Пенсия (реальная):</span><b id="outReal">—</b></div>
             <div class="result-row"><span>Битуах Леуми:</span><b id="outBtl">—</b></div>
@@ -120,59 +125,67 @@
             <div id="verdict" style="font-family:var(--mono); font-size:10px; opacity:0.9;"></div>
         </div>
     </div>
+
+    <div class="info-grid">
+        <div class="info-card">
+            <h4>Где взять данные?</h4>
+            <p>Закажите отчет в <b>Пенсионной Маслаке</b> (המסלקה הפנסיונית). Это дает полную картину всех накоплений, включая старые страховки.</p>
+        </div>
+        <div class="info-card">
+            <h4>Комиссии (Дмей Ниуль)</h4>
+            <p>Перевод в фонды с комиссией 0.2% вместо 0.5% может увеличить вашу пенсию на 500-800 шекелей в месяц на длинной дистанции.</p>
+        </div>
+        <div class="info-card warn">
+            <h4>⚠ Bituah Menahalim</h4>
+            <p>Полисы до 2013 года имеют «гарантированный макдем». Не делайте с ними ничего без проверки специалиста.</p>
+        </div>
+    </div>
 </div>
 
 <script>
 const SHEET_ID = '1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw';
 const PARAMS = { inf: 0.025, grow: 0.02, btlBase: 1736, btlMax: 9208 };
-
-// Базовая таблица (Fallback)
 let MAKDEM_TABLE = [
     [1960, 179, 200, 183, 204], [1965, 184, 206, 188, 210],
-    [1970, 190, 213, 194, 217], [1975, 196, 220, 200, 224],
-    [1980, 203, 227, 207, 231], [1990, 215, 241, 219, 245]
+    [1970, 190, 213, 194, 217], [1975, 196, 220, 200, 224]
 ];
 
 async function syncWithGoogle() {
-    const status = document.getElementById('dbStatus');
     try {
         const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Makdem_Reference`);
         const text = await res.text();
         if (text.includes(',')) {
-            const rows = text.split('\n').slice(1);
-            const freshData = rows.map(r => r.split(',').map(c => +c.replace(/"/g, '').trim())).filter(r => r[0] > 1900);
-            if (freshData.length > 0) {
-                MAKDEM_TABLE = freshData;
-                status.innerText = 'ОНЛАЙН-ДАННЫЕ';
-                status.classList.add('ok');
-                calculate();
-            }
+            const freshData = text.split('\n').slice(1).map(r => r.split(',').map(c => +c.replace(/"/g, '').trim())).filter(r => r[0] > 1900);
+            if (freshData.length > 0) { MAKDEM_TABLE = freshData; document.getElementById('dbStatus').innerText = 'ОНЛАЙН'; calculate(); }
         }
-    } catch (e) { status.innerText = 'ВСТРОЕННЫЕ ДАННЫЕ'; }
+    } catch (e) { document.getElementById('dbStatus').innerText = 'FALLBACK'; }
 }
 
+// ТОЧНЫЙ РАСЧЕТ ВОЗРАСТА ВЫХОДА ДЛЯ ЖЕНЩИН (Закон 2021)
 function getRetireAge(gender, year) {
     if (gender === 'male') return 67;
-    return year <= 1960 ? 62 : (year >= 1964 ? 65 : 64);
+    if (year <= 1955) return 62;
+    const table = {
+        1956: 62.33, 1957: 62.66, 1958: 63, 1959: 63.33, 
+        1960: 63.66, 1961: 64, 1962: 64.33, 1963: 64.66
+    };
+    return table[year] || 65;
 }
 
 function getMakdem(year, gender, type) {
-    const row = MAKDEM_TABLE.reduce((prev, curr) => 
-        Math.abs(curr[0] - year) < Math.abs(prev[0] - year) ? curr : prev
-    );
-    if (type === 'manager') return gender === 'male' ? row[3] : row[4];
-    return gender === 'male' ? row[1] : row[2];
+    const row = MAKDEM_TABLE.reduce((prev, curr) => Math.abs(curr[0] - year) < Math.abs(prev[0] - year) ? curr : prev);
+    return type === 'manager' ? (gender === 'male' ? row[3] : row[4]) : (gender === 'male' ? row[1] : row[2]);
 }
 
-function addFund(name='Harel', type='pension', sum=300000) {
+function addFund(name='Harel', type='pension', sum=350000) {
     const div = document.createElement('div');
     div.className = 'fund-item';
     div.innerHTML = `
-        <div><label>Название</label><input type="text" value="${name}"></div>
+        <div><label>Название</label><input type="text" class="f-name" value="${name}"></div>
         <div><label>Тип</label><select class="f-type"><option value="pension">Пенсия</option><option value="manager">Битух Мен.</option><option value="capital">Капитал</option></select></div>
         <div><label>Баланс</label><input type="number" class="f-sum" value="${sum}"></div>
-        <div><label>Работник %</label><input type="number" class="f-emp" value="6"></div>
-        <div><label>Хозяин %</label><input type="number" class="f-empr" value="12.5"></div>
+        <div><label>Раб. %</label><input type="number" class="f-emp" value="6"></div>
+        <div><label>Хоз. %</label><input type="number" class="f-empr" value="12.5"></div>
         <div><label>Комиссия %</label><input type="number" class="f-fee" value="0.5"></div>
         <button class="delete-btn" onclick="this.parentElement.remove(); calculate();">×</button>
     `;
@@ -197,26 +210,22 @@ function calculate() {
         const fee = (+f.querySelector('.f-fee').value) / 100;
         const type = f.querySelector('.f-type').value;
         
-        let yearlySalary = salary;
+        let loopSalary = salary;
         for (let i = 0; i < years; i++) {
-            sum += (yearlySalary * dep * 12);
+            sum += (loopSalary * dep * 12);
             sum *= (1 + rate - fee);
-            yearlySalary *= (1 + PARAMS.grow); // Индексация взносов
+            loopSalary *= (1 + PARAMS.grow);
         }
 
-        if (type === 'capital') {
-            totalCapNominal += (sum * 0.04 / 12);
-        } else {
-            totalNominal += (sum / getMakdem(birthYear, gender, type));
-        }
+        if (type === 'capital') totalCapNominal += (sum * 0.04 / 12);
+        else totalNominal += (sum / getMakdem(birthYear, gender, type));
     });
 
     const adj = Math.pow(1 + PARAMS.inf, years);
     const realP = totalNominal / adj;
     const realC = totalCapNominal / adj;
-    
-    // Расчет BTL
     const pensionIncome = realP + realC;
+
     let btlPenalty = 0;
     if (pensionIncome > PARAMS.btlMax) btlPenalty = (pensionIncome - PARAMS.btlMax) * 0.6;
     const finalBtl = Math.max(0, PARAMS.btlBase - btlPenalty);
@@ -232,7 +241,6 @@ function calculate() {
     document.getElementById('outBtl').innerText = fmt(finalBtl);
     document.getElementById('outCap').innerText = fmt(realC);
     document.getElementById('outTotal').innerText = Math.round(totalNet).toLocaleString('ru-RU');
-    
     document.getElementById('verdict').innerText = totalNet > 6000 ? "✓ Прогноз стабильный" : "⚠ Требуется доп. капитал";
 }
 
