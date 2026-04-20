@@ -3,34 +3,119 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pension PRO Israel</title>
+<title>Pension Navigator PRO</title>
 
 <style>
-body {font-family: Arial; background:#0f172a; color:white; padding:20px;}
-.container {max-width:1000px; margin:auto;}
-.card {background:#1e293b; padding:20px; border-radius:10px; margin-bottom:20px;}
-input, select {width:100%; padding:10px; margin-top:5px;}
-.result {font-size:22px; color:#10b981;}
-.small {font-size:12px; color:#94a3b8;}
+:root {
+    --bg:#0f172a;
+    --card:#1e293b;
+    --accent:#10b981;
+    --text:#e2e8f0;
+    --muted:#94a3b8;
+}
+
+body {
+    margin:0;
+    font-family: system-ui;
+    background:var(--bg);
+    color:var(--text);
+}
+
+.container {
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+.card {
+    background:var(--card);
+    padding:20px;
+    border-radius:14px;
+    margin-bottom:20px;
+}
+
+h2,h3 {margin-top:0}
+
+.grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+    gap:10px;
+}
+
+input,select {
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    margin-top:5px;
+}
+
+button {
+    background:var(--accent);
+    color:white;
+    border:none;
+    padding:12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.fund {
+    background:#0f172a;
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+}
+
+.result {
+    font-size:28px;
+    color:var(--accent);
+    font-weight:bold;
+}
+
+.small {
+    color:var(--muted);
+    font-size:12px;
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
 <div class="card">
-<h2>👤 Данные</h2>
+<h2>👤 Параметры</h2>
+<div class="grid">
 
-Возраст: <input id="age" type="number" value="40">
-Зарплата: <input id="salary" type="number" value="15000">
-Возраст пенсии: <input id="retire" type="number" value="67">
+<div>
+Пол
+<select id="gender">
+<option value="male">Мужчина</option>
+<option value="female">Женщина</option>
+</select>
+</div>
 
-Сценарий:
+<div>
+Год рождения
+<input id="birthYear" type="number" value="1985">
+</div>
+
+<div>
+Зарплата
+<input id="salary" type="number" value="15000">
+</div>
+
+<div>
+Сценарий
 <select id="scenario">
-<option value="pess">Плохой рынок</option>
+<option value="pess">Плохой</option>
 <option value="base" selected>Нормальный</option>
 <option value="good">Хороший</option>
 </select>
+</div>
+
+</div>
 </div>
 
 <div class="card">
@@ -47,17 +132,31 @@ input, select {width:100%; padding:10px; margin-top:5px;}
 <div>Битуах Леуми: <span class="result" id="btl">0</span></div>
 <div>ИТОГО: <span class="result" id="total">0</span></div>
 
-<p class="small">Учитываются инфляция, комиссии, рост зарплаты</p>
+<p class="small">Учитываются инфляция, комиссии и рост зарплаты</p>
 </div>
+
+<div class="card" id="insight"></div>
 
 </div>
 
 <script>
 
+// ===== CONFIG =====
+const CONFIG = {
+    inflation:0.025,
+    salaryGrowth:0.03,
+    scenarios:{
+        pess:0.03,
+        base:0.05,
+        good:0.07
+    }
+};
+
+// ===== ADD FUND =====
 function addFund(){
     let div=document.createElement("div");
+    div.className="fund";
     div.innerHTML=`
-    <div class="card">
     Тип:
     <select class="type">
         <option value="pension">Пенсия</option>
@@ -68,44 +167,49 @@ function addFund(){
     Баланс:
     <input class="sum" type="number" value="100000">
 
-    Взнос (% от зарплаты):
+    Взнос (%):
     <input class="deposit" type="number" value="18.5">
 
     Комиссия (%):
     <input class="fee" type="number" value="0.8">
-    </div>
     `;
     document.getElementById("funds").appendChild(div);
 }
 
 addFund();
 
-function getScenario(){
-    let s=document.getElementById("scenario").value;
-    if(s==="pess") return {r:0.03};
-    if(s==="good") return {r:0.07};
-    return {r:0.05};
+// ===== HELPERS =====
+function getRetireAge(gender,year){
+    if(gender==="male") return 67;
+    if(year>=1964) return 65;
+    if(year>=1960) return 63;
+    return 62;
 }
 
-function calcMakdem(age){
-    return 180 + (age-60)*2; // динамика
+function calcMakdem(age,gender){
+    let base = gender==="female"?200:190;
+    return base + (age-60)*2;
 }
 
-function run(){
+// ===== CORE =====
+function calculate(){
 
-let age=+document.getElementById("age").value;
+let gender=document.getElementById("gender").value;
+let birthYear=+document.getElementById("birthYear").value;
 let salary=+document.getElementById("salary").value;
-let retire=+document.getElementById("retire").value;
+let scenario=document.getElementById("scenario").value;
 
+let r=CONFIG.scenarios[scenario];
+
+let age=new Date().getFullYear()-birthYear;
+let retire=getRetireAge(gender,birthYear);
 let years=retire-age;
-let infl=0.025;
-let salaryGrowth=0.03;
-
-let {r}=getScenario();
 
 let totalCapital=0;
+let pension=0;
+let capIncome=0;
 
-document.querySelectorAll("#funds .card").forEach(f=>{
+document.querySelectorAll(".fund").forEach(f=>{
 
     let sum=+f.querySelector(".sum").value;
     let dep=+f.querySelector(".deposit").value/100;
@@ -116,35 +220,55 @@ document.querySelectorAll("#funds .card").forEach(f=>{
     for(let i=0;i<years;i++){
         sum+=s*dep*12;
         sum*=1+(r-fee);
-        s*=1+salaryGrowth;
+        s*=1+CONFIG.salaryGrowth;
     }
 
     totalCapital+=sum;
+
+    if(f.querySelector(".type").value==="capital"){
+        capIncome+=sum*0.04/12;
+    }else{
+        let makdem=calcMakdem(retire,gender);
+        pension+=sum/makdem;
+    }
+
 });
 
-let makdem=calcMakdem(retire);
-
-let pensionNominal=totalCapital/makdem;
-
 // инфляция
-let inflationFactor=Math.pow(1+infl,years);
-let pensionReal=pensionNominal/inflationFactor;
+let inflationFactor=Math.pow(1+CONFIG.inflation,years);
+let real=pension/inflationFactor;
 
-// Битуах Леуми
+// ביטוח לאומי
 let btl=1800;
 if(retire>=70) btl=2300;
 
-let total=pensionReal+btl;
+let total=real+btl+capIncome;
 
-document.getElementById("nominal").innerText=Math.round(pensionNominal);
-document.getElementById("real").innerText=Math.round(pensionReal);
+// UI
+document.getElementById("nominal").innerText=Math.round(pension);
+document.getElementById("real").innerText=Math.round(real);
 document.getElementById("btl").innerText=Math.round(btl);
 document.getElementById("total").innerText=Math.round(total);
 
+// insights
+let insight=document.getElementById("insight");
+
+if(real<5000){
+    insight.innerHTML="⚠️ Пенсия низкая. Увеличь взносы или оптимизируй фонд.";
+}
+else if(real<8000){
+    insight.innerHTML="🟡 Средний уровень. Можно улучшить за счет комиссий.";
+}
+else{
+    insight.innerHTML="🟢 Отличный уровень пенсии.";
 }
 
-setInterval(run,1000);
+}
+
+// автообновление
+setInterval(calculate,1000);
 
 </script>
+
 </body>
 </html>
