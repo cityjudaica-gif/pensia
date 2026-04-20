@@ -1,89 +1,236 @@
-<script>
-    const SHEET_ID = '1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw';
-    
-    async function runEngine() {
-        const btn = document.querySelector('button');
-        btn.innerText = 'PROCESSING...';
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISR_PENSION_ENGINE_v1.1</title>
+    <style>
+        /* СТИЛЬ MATRIX / THREAT ENGINE */
+        body {
+            background-color: #000000;
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 850px;
+            border: 1px solid #00FF00;
+            padding: 25px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 1.4em;
+            text-align: center;
+            border-bottom: 2px solid #00FF00;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        label {
+            font-size: 0.75em;
+            margin-bottom: 5px;
+            color: #008800;
+        }
+        input, select {
+            background: #0a0a0a;
+            border: 1px solid #00FF00;
+            color: #00FF00;
+            padding: 10px;
+            font-family: inherit;
+            outline: none;
+        }
+        input:focus { background: #111; }
         
-        try {
-            // Загружаем данные в формате CSV (самый стабильный метод для GitHub Pages)
-            const taxData = await fetchCSV('Tax_Engine_Data');
-            const makdemData = await fetchCSV('Makdem_Reference');
-            
-            const birthYear = parseInt(document.getElementById('birthYear').value);
-            const gender = document.getElementById('gender').value;
-            const capital = parseFloat(document.getElementById('capital').value);
-            const salary = parseFloat(document.getElementById('salary').value);
-            const isOld = document.getElementById('policyType').value === 'old';
-            const isOleh = document.getElementById('isOleh').value === 'yes';
+        button {
+            grid-column: span 2;
+            background: #003300;
+            color: #00FF00;
+            border: 1px solid #00FF00;
+            padding: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        button:hover { background: #00FF00; color: #000; }
 
-            // Поиск макдема
-            const makdemRow = makdemData.find(r => r[0] == birthYear);
-            if (!makdemRow) throw new Error("Год рождения не найден в Makdem_Reference");
+        #resultArea {
+            margin-top: 30px;
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #00FF00;
+        }
+        th, td {
+            border: 1px solid #004400;
+            padding: 12px;
+            text-align: left;
+        }
+        th { background: #001100; font-size: 0.9em; }
+        .val { color: #ffffff; font-weight: bold; text-align: right; }
+        
+        .footer {
+            margin-top: 20px;
+            font-size: 0.7em;
+            color: #004400;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>PENSION_THREAT_ENGINE // TERMINAL_V1.1</h1>
+
+    <div class="grid">
+        <div class="input-group">
+            <label>ГОД РОЖДЕНИЯ (YYYY)</label>
+            <input type="number" id="birthYear" value="1960" min="1950" max="1975">
+        </div>
+        <div class="input-group">
+            <label>ПОЛ</label>
+            <select id="gender">
+                <option value="male">MALE [M]</option>
+                <option value="female">FEMALE [F]</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>КАПИТАЛ (₪)</label>
+            <input type="number" id="capital" value="1500000">
+        </div>
+        <div class="input-group">
+            <label>ЗАРПЛАТА БРУТТО (₪)</label>
+            <input type="number" id="salary" value="0">
+        </div>
+        <div class="input-group">
+            <label>СТАТУС ПОЛИСА</label>
+            <select id="isOld">
+                <option value="false">NEW_FUND [AFTER 2001]</option>
+                <option value="true">OLD_POLICY [PRE 2001]</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>РЕПАТРИАНТ (48 МЕС)</label>
+            <select id="isOleh">
+                <option value="false">NO</option>
+                <option value="true">YES</option>
+            </select>
+        </div>
+        <button onclick="calculate()">RUN_CALCULATION_SEQUENCER</button>
+    </div>
+
+    <div id="resultArea">
+        <table>
+            <thead>
+                <tr>
+                    <th>PARAMETER_NAME</th>
+                    <th>DATA_VALUE</th>
+                </tr>
+            </thead>
+            <tbody id="resBody"></tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        SID: 1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw // STABLE_CSV_LINK
+    </div>
+</div>
+
+<script>
+    const SPREADSHEET_ID = '1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw';
+
+    async function calculate() {
+        const btn = document.querySelector('button');
+        btn.innerText = 'FETCHING_REMOTE_DATA...';
+
+        try {
+            // Загрузка данных через CSV прокси Google
+            const taxCsv = await fetchSheet('Tax_Engine_Data');
+            const makdemCsv = await fetchSheet('Makdem_Reference');
+
+            const year = parseInt(document.getElementById('birthYear').value);
+            const cap = parseFloat(document.getElementById('capital').value);
+            const sal = parseFloat(document.getElementById('salary').value);
+            const gender = document.getElementById('gender').value;
+            const oldPolicy = document.getElementById('isOld').value === 'true';
+            const oleh = document.getElementById('isOleh').value === 'true';
+
+            // Логика Макдема
+            const mRow = makdemCsv.find(r => r[0] == year);
+            if (!mRow) throw new Error("Year not found in Reference");
             
-            let makdem = gender === 'male' ? (isOld ? makdemRow[3] : makdemRow[1]) : (isOld ? makdemRow[4] : makdemRow[2]);
+            let makdem;
+            if (gender === 'male') makdem = oldPolicy ? mRow[3] : mRow[1];
+            else makdem = oldPolicy ? mRow[4] : mRow[2];
             makdem = parseFloat(makdem);
 
-            const pensionBrutto = capital / makdem;
-            
-            // Получаем константы из Tax_Engine_Data
-            const taxStep1 = findInCSV(taxData, 'Tax_Step_1_Limit', 7010);
-            const cpValue = findInCSV(taxData, 'Credit_Point_Value', 242);
-            const exemptionCeiling = findInCSV(taxData, 'Exemption_Ceiling', 9430);
-            const btlLimit = findInCSV(taxData, 'BTL_Income_Limit', 9208);
-            const baseZikna = findInCSV(taxData, 'Base_Zikna_Amount', 1736);
-            
-            // Налоговый щит (67%)
-            const ptuar = exemptionCeiling * 0.67;
-            const taxablePension = Math.max(0, pensionBrutto - ptuar);
-            
-            // Льготные баллы
-            let cp = (gender === 'female' ? 2.75 : 2.25);
-            if (isOleh) cp += 1; 
-            
-            // Битуах Леуми
-            let actualZikna = (salary + pensionBrutto) > btlLimit 
-                ? Math.max(0, baseZikna - ((salary + pensionBrutto - btlLimit) * 0.6))
-                : baseZikna;
+            const brutto = cap / makdem;
 
-            renderResults([
-                ['ПЕНСИЯ (БРУТТО)', pensionBrutto.toFixed(2) + ' ₪'],
-                ['МАКДЕМ', makdem],
-                ['НАЛОГОВЫЙ ПТУР', ptuar.toFixed(2) + ' ₪'],
-                ['БИТУАХ ЛЕУМИ', actualZikna.toFixed(2) + ' ₪'],
-                ['ИТОГО НЕТТО (ПЕНСИЯ+БЛ)', (pensionBrutto + actualZikna).toFixed(2) + ' ₪']
+            // Константы из Tax_Engine_Data
+            const btlLimit = getVal(taxCsv, 'BTL_Income_Limit', 9208);
+            const btlBase = getVal(taxCsv, 'Base_Zikna_Amount', 1736);
+            const exemption = getVal(taxCsv, 'Exemption_Ceiling', 9430) * 0.67;
+
+            // Тест Битуах Леуми
+            let zikna = btlBase;
+            if ((brutto + sal) > btlLimit) {
+                zikna = Math.max(0, btlBase - ((brutto + sal - btlLimit) * 0.6));
+            }
+
+            const net = brutto + zikna;
+
+            showResults([
+                ['MONTHLY_BRUTTO', brutto.toFixed(2) + ' ₪'],
+                ['APPLIED_MAKDEM', makdem],
+                ['TAX_EXEMPTION', exemption.toFixed(2) + ' ₪'],
+                ['BTL_PENSION_NET', zikna.toFixed(2) + ' ₪'],
+                ['TOTAL_ESTIMATED_NET', net.toFixed(2) + ' ₪']
             ]);
 
-        } catch (e) {
-            console.error(e);
-            alert('СБОЙ СИСТЕМЫ: ' + e.message);
+        } catch (err) {
+            alert("ENGINE_ERROR: " + err.message);
         } finally {
-            btn.innerText = 'EXECUTE_CALCULATION';
+            btn.innerText = 'RUN_CALCULATION_SEQUENCER';
         }
     }
 
-    // Функция загрузки CSV
-    async function fetchCSV(sheetName) {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Не удалось подключиться к таблице");
-        const data = await response.text();
-        // Парсим CSV в массив
-        return data.split('\n').map(row => row.split(',').map(cell => cell.replace(/"/g, '').trim()));
+    async function fetchSheet(name) {
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${name}`;
+        const res = await fetch(url);
+        const text = await res.text();
+        return text.split('\n').map(r => r.split(',').map(c => c.replace(/"/g, '')));
     }
 
-    function findInCSV(data, key, def) {
-        const row = data.find(r => r[0] === key);
-        return row ? parseFloat(row[1]) : def;
+    function getVal(data, key, fallback) {
+        const r = data.find(row => row[0] === key);
+        return r ? parseFloat(r[1]) : fallback;
     }
 
-    function renderResults(data) {
-        const res = document.getElementById('results');
-        const body = document.getElementById('resultBody');
+    function showResults(data) {
+        const body = document.getElementById('resBody');
         body.innerHTML = '';
-        data.forEach(row => {
-            body.innerHTML += `<tr><td>${row[0]}</td><td class="highlight">${row[1]}</td></tr>`;
+        data.forEach(d => {
+            body.innerHTML += `<tr><td>${d[0]}</td><td class="val">${d[1]}</td></tr>`;
         });
-        res.style.display = 'block';
+        document.getElementById('resultArea').style.display = 'block';
     }
 </script>
+
+</body>
+</html>
