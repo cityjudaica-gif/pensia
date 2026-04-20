@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pension Navigator 5.0 — BTL Edition</title>
+    <title>Pension Navigator 5.2 — Precise BTL Engine</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Libre+Baskerville:wght@400;700&display=swap');
         :root {
@@ -30,13 +30,19 @@
         label { display: block; font-family: var(--mono); font-size: 9px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; color: #666; }
         input, select { width: 100%; padding: 8px; border: 1px solid var(--border); font-family: var(--mono); font-size: 13px; background: #fff; }
         
+        .fund-item { 
+            background: #faf9f6; border: 1px solid var(--border); border-left: 4px solid var(--primary);
+            padding: 15px; margin-top: 10px; display: grid; 
+            grid-template-columns: 1.5fr 1fr 1fr 1fr auto; gap: 10px; align-items: end;
+        }
+
         .results-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
         .total-card { background: var(--primary); color: white; padding: 25px; border-radius: 4px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
         .total-amount { font-family: var(--mono); font-size: 44px; font-weight: 600; line-height: 1; margin: 10px 0; }
         
         .result-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0ede6; font-family: var(--mono); }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .info-card { padding: 15px; border: 1px solid var(--border); background: white; font-size: 12px; border-left: 3px solid var(--primary); }
+        .btn-add { background: var(--text); color: white; border: none; padding: 10px 15px; font-family: var(--mono); font-size: 10px; cursor: pointer; border-radius: 3px; margin-top: 10px; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 20px; cursor: pointer; line-height: 1; }
     </style>
 </head>
 <body>
@@ -45,53 +51,45 @@
     <div class="header-nav">
         <div class="stat-item"><span>Возраст выхода</span><b id="navRetAge">--</b></div>
         <div class="stat-item"><span>Безусловное право</span><b id="navAbsAge">--</b></div>
-        <div class="stat-item"><span>Лимит работы</span><b>10,113 ₪</b></div>
+        <div class="stat-item"><span>Сценарий рынка</span>
+            <select id="marketGlobal" style="background:transparent; color:white; border:none; font-family:var(--mono); font-size:12px;">
+                <option value="0.03">3% (Консерв.)</option>
+                <option value="0.05" selected>5% (Умерен.)</option>
+                <option value="0.07">7% (Агрессив.)</option>
+            </select>
+        </div>
         <div class="stat-item"><span>Итого Net</span><b id="navTotal">--</b></div>
     </div>
 
     <div class="card">
-        <h3>01 — Профиль и Стаж (BTL)</h3>
+        <h3>01 — Профиль и Стаж (Битуах Леуми)</h3>
         <div class="grid-inputs">
             <div><label>Пол</label><select id="gender"><option value="male">Мужчина</option><option value="female" selected>Женщина</option></select></div>
             <div><label>Дата рождения</label><input id="birthDate" type="date" value="1965-04-20"></div>
-            <div><label>Стаж в Израиле (лет)</label><input id="vetek" type="number" value="25" min="0" max="50"></div>
-            <div><label>ЗП в месяц (брутто)</label><input id="workIncome" type="number" value="8000" min="0"></div>
+            <div><label>Стаж в Израиле (лет)</label><input id="vetek" type="number" value="25" min="0"></div>
+            <div><label>ЗП (брутто в месяц)</label><input id="workIncome" type="number" value="12000" min="0"></div>
         </div>
     </div>
 
     <div class="card">
-        <h3>02 — Пенсионные накопления</h3>
-        <div class="grid-inputs">
-            <div><label>Сумма в фондах (₪)</label><input id="pensionSum" type="number" value="550000" min="0"></div>
-            <div><label>Лет до пенсии</label><input id="yearsToWork" type="number" value="2" min="0"></div>
-            <div><label>Сценарий рынка</label><select id="market"><option value="0.03">3%</option><option value="0.05" selected>5%</option><option value="0.07">7%</option></select></div>
-        </div>
+        <h3>02 — Пенсионные накопления (Активы)</h3>
+        <div id="fundsList"></div>
+        <button class="btn-add" onclick="addFund()">+ Добавить фонд / Керен Иштальмут</button>
     </div>
 
     <div class="results-grid">
         <div class="card" style="margin-bottom:0">
-            <h3>03 — Детализация выплат</h3>
-            <div class="result-row"><span>Базовое пособие:</span><b id="outBtlBase">—</b></div>
-            <div class="result-row"><span>Надбавка за стаж:</span><b id="outVetek">—</b></div>
-            <div class="result-row"><span>Вычет из-за работы:</span><b id="outPenalty" style="color:var(--danger)">—</b></div>
-            <div class="result-row"><span>Пенсия из фондов:</span><b id="outFundPension">—</b></div>
+            <h3>03 — Детализация (в ценах 2026 г.)</h3>
+            <div class="result-row"><span>Пособие + Стаж:</span><b id="outBtlFull">—</b></div>
+            <div class="result-row"><span>Вычет BTL (из-за работы):</span><b id="outPenalty" style="color:var(--danger)">—</b></div>
+            <div class="result-row"><span>Суммарная пенсия (фонды):</span><b id="outTotalPension">—</b></div>
+            <div class="result-row" style="opacity:0.6; font-size:11px;"><span>Итого накоплений к выходу:</span><b id="outNominalCapital">—</b></div>
         </div>
 
         <div class="total-card">
-            <span style="font-size:10px; text-transform:uppercase; opacity:0.8;">Прогноз на руки (Пособие + Пенсия)</span>
+            <span style="font-size:10px; text-transform:uppercase; opacity:0.8;">Прогноз на руки (Net)</span>
             <span class="total-amount" id="mainTotal">0</span>
-            <div id="verdict" style="font-family:var(--mono); font-size:11px; margin-top:5px; font-weight:600;"></div>
-        </div>
-    </div>
-
-    <div class="info-grid">
-        <div class="info-card">
-            <h4 style="font-family:var(--mono); margin-bottom:5px;">УЧЕТ ДОХОДОВ</h4>
-            <p>До 70 лет (абсолютное право) на пособие влияет только <b>доход от работы</b>. Пенсия из фондов не уменьшает ваше основное пособие по старости.</p>
-        </div>
-        <div class="info-card" style="border-left-color: var(--warning);">
-            <h4 style="font-family:var(--mono); margin-bottom:5px;">ИНДЕКСАЦИЯ 2026</h4>
-            <p>Расчет базируется на показателях 2026 года. База 1,838₪. Надбавка за стаж ограничена 50% от базового пособия.</p>
+            <div id="verdict" style="font-family:var(--mono); font-size:11px; margin-top:10px; font-weight:600;"></div>
         </div>
     </div>
 </div>
@@ -106,7 +104,6 @@ const BTL_2026 = {
     maxVetek: 0.50
 };
 
-// Таблица MAKDEM с интерполяцией
 const MAKDEM_TABLE = { 1960: 200, 1965: 206, 1970: 213, 1980: 227 };
 
 function getMakdem(year) {
@@ -119,82 +116,125 @@ function getMakdem(year) {
             return MAKDEM_TABLE[keys[i]] + (MAKDEM_TABLE[keys[i+1]] - MAKDEM_TABLE[keys[i]]) * ratio;
         }
     }
-    return 200;
+    return 206;
 }
 
+// ЮРИДИЧЕСКИ ТОЧНЫЙ ВОЗРАСТ (БЛ)
 function getAges(gender, dateStr) {
-    const year = new Date(dateStr).getFullYear();
-    let retAge = 67; 
+    const bDate = new Date(dateStr);
+    const year = bDate.getFullYear();
+    const month = bDate.getMonth() + 1;
+    let retAge = 67;
+
     if (gender === 'female') {
-        const t = {1956: 62.33, 1957: 62.66, 1958: 63, 1959: 63.33, 1960: 63.66, 1961: 64, 1962: 64.33, 1963: 64.66, 1964: 65};
-        retAge = t[year] || (year < 1956 ? 62 : 65);
+        if (year < 1960) retAge = 62;
+        else if (year === 1960) retAge = (month <= 6) ? 62.33 : 62.66;
+        else if (year === 1961) retAge = (month <= 6) ? 63 : 63.33;
+        else if (year === 1962) retAge = (month <= 6) ? 63.66 : 64;
+        else if (year === 1963) retAge = (month <= 6) ? 64.33 : 64.66;
+        else if (year === 1964) retAge = (month <= 6) ? 65 : 65.33;
+        else if (year === 1965) retAge = (month <= 6) ? 65.66 : 66; // Апрель 1965 попадает сюда -> 65 и 8 мес.
+        else if (year === 1966) retAge = (month <= 6) ? 66.33 : 66.66;
+        else if (year >= 1967) retAge = 67;
     }
-    return { ret: retAge, abs: 70 };
+    return { ret: retAge, abs: (gender === 'male' ? 70 : Math.min(70, retAge + 4)) };
+}
+
+function addFund(name="Harel / Phoenix", sum=300000) {
+    const div = document.createElement('div');
+    div.className = 'fund-item';
+    div.innerHTML = `
+        <div><label>Название фонда</label><input type="text" class="f-name" value="${name}"></div>
+        <div><label>Тип</label><select class="f-type"><option value="pension">Пенсия</option><option value="capital">Керен Ишт.</option></select></div>
+        <div><label>Текущая сумма</label><input type="number" class="f-sum" value="${sum}"></div>
+        <div><label>Взнос (₪/мес)</label><input type="number" class="f-dep" value="1500"></div>
+        <button class="btn-del" onclick="this.parentElement.remove(); calculate();">×</button>
+    `;
+    document.getElementById('fundsList').appendChild(div);
+    calculate();
 }
 
 function calculate() {
     const gender = document.getElementById('gender').value;
     const bDateStr = document.getElementById('birthDate').value;
-    const vetekYears = Math.min(50, +document.getElementById('vetek').value);
     const workIncome = +document.getElementById('workIncome').value;
-    const fundSum = +document.getElementById('pensionSum').value;
-    const yearsToWait = +document.getElementById('yearsToWork').value;
-    const market = +document.getElementById('market').value;
+    const vetekYears = +document.getElementById('vetek').value;
+    const market = +document.getElementById('marketGlobal').value;
 
     const bDate = new Date(bDateStr);
     if (isNaN(bDate)) return;
 
     const ages = getAges(gender, bDateStr);
-    const currentAge = (new Date() - bDate) / (1000 * 60 * 60 * 24 * 365.25);
-    
-    // 1. Расчет пособия BTL
+    const today = new Date();
+    const currentAge = (today - bDate) / (1000 * 60 * 60 * 24 * 365.25);
+    const yearsToRetire = Math.max(0, ages.ret - currentAge);
+
+    // 1. Пособие БЛ
     const vetekBonus = BTL_2026.base * Math.min(BTL_2026.maxVetek, (vetekYears * BTL_2026.vetekRate));
-    let currentBtl = BTL_2026.base + vetekBonus;
+    let fullBtl = BTL_2026.base + vetekBonus;
     
     let penalty = 0;
-    // Проверка дохода работает только до Возраста Абсолютного Права (70 лет)
+    // Тест доходов только до возраста абсолютного права
     if (currentAge < ages.abs) {
         if (workIncome > BTL_2026.workLimit) {
             penalty = (workIncome - BTL_2026.workLimit) * BTL_2026.penaltyRate;
         }
     }
-    const finalBtl = Math.max(0, currentBtl - penalty);
+    const finalBtl = Math.max(0, fullBtl - penalty);
 
-    // 2. Расчет пенсии из фондов
-    let futureFund = fundSum;
-    for(let i=0; i<yearsToWait; i++) {
-        futureFund *= (1 + market - 0.005); // доходность минус комиссия
-    }
-    const inflationAdj = Math.pow(1 + BTL_2026.inf, yearsToWait);
-    const makdem = getMakdem(bDate.getFullYear());
-    const monthlyPension = (futureFund / makdem) / inflationAdj;
+    // 2. Расчет фондов
+    let totalMonthlyFromFunds = 0;
+    let totalNominalAtRetirement = 0;
 
-    const totalNet = finalBtl + monthlyPension;
+    document.querySelectorAll('.fund-item').forEach(el => {
+        let sum = +el.querySelector('.f-sum').value;
+        const dep = +el.querySelector('.f-dep').value;
+        const type = el.querySelector('.f-type').value;
 
-    // UI Output
+        // Накопление до пенсии
+        for(let i=0; i<Math.floor(yearsToRetire); i++) {
+            sum = (sum + (dep * 12)) * (1 + market - 0.005);
+        }
+        
+        totalNominalAtRetirement += sum;
+        const inflationAdj = Math.pow(1 + BTL_2026.inf, yearsToRetire);
+        
+        if (type === 'pension') {
+            const makdem = getMakdem(bDate.getFullYear());
+            totalMonthlyFromFunds += (sum / makdem) / inflationAdj;
+        } else {
+            // Керен Иштальмут считаем как 4% ежемесячного изъятия (SWR)
+            totalMonthlyFromFunds += (sum * 0.04 / 12) / inflationAdj;
+        }
+    });
+
+    const totalNet = finalBtl + totalMonthlyFromFunds;
+
+    // Output
     const f = n => Math.round(n).toLocaleString() + ' ₪';
-    document.getElementById('navRetAge').innerText = ages.ret.toFixed(1);
-    document.getElementById('navAbsAge').innerText = ages.abs;
+    const fmtAge = val => {
+        const y = Math.floor(val);
+        const m = Math.round((val - y) * 12);
+        return `${y}л ${m}м`;
+    };
+
+    document.getElementById('navRetAge').innerText = fmtAge(ages.ret);
+    document.getElementById('navAbsAge').innerText = fmtAge(ages.abs);
     document.getElementById('navTotal').innerText = f(totalNet);
     document.getElementById('mainTotal').innerText = Math.round(totalNet).toLocaleString();
     
-    document.getElementById('outBtlBase').innerText = f(BTL_2026.base);
-    document.getElementById('outVetek').innerText = f(vetekBonus);
+    document.getElementById('outBtlFull').innerText = f(fullBtl);
     document.getElementById('outPenalty').innerText = penalty > 0 ? "-" + f(penalty) : "0 ₪";
-    document.getElementById('outFundPension').innerText = f(monthlyPension);
+    document.getElementById('outTotalPension').innerText = f(totalMonthlyFromFunds);
+    document.getElementById('outNominalCapital').innerText = f(totalNominalAtRetirement);
 
     const v = document.getElementById('verdict');
-    if (penalty > currentBtl) {
-        v.innerText = "⚠ ВНИМАНИЕ: ЗАРПЛАТА ПОЛНОСТЬЮ ОБНУЛИЛА ПОСОБИЕ";
-        v.style.color = "var(--danger)";
-    } else {
-        v.innerText = "✓ РАСЧЕТ АКТУАЛЕН НА 2026 Г.";
-        v.style.color = "#86efac";
-    }
+    v.innerText = penalty >= fullBtl ? "⚠ ЗАРПЛАТА ПОЛНОСТЬЮ ОТМЕНИЛА ПОСОБИЕ" : "✓ РАСЧЕТ В ЦЕНАХ 2026 ГОДА";
+    v.style.color = penalty >= fullBtl ? "var(--danger)" : "#86efac";
 }
 
 document.getElementById('mainApp').addEventListener('input', calculate);
-calculate();
+addFund("Основная пенсия", 450000); // Начальный фонд
 </script>
 </body>
 </html>
