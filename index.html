@@ -3,241 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пенсионный Навигатор PRO 3.3</title>
+    <title>Пенсионный Навигатор PRO 3.4</title>
     <style>
         :root {
             --primary: #2563eb;
             --success: #059669;
-            --warning: #d97706;
-            --danger: #dc2626;
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #0f172a;
-            --text-light: #64748b;
             --border: #e2e8f0;
         }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-        }
-
-        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-
-        /* HEADER STATS */
-        .header-nav {
-            position: sticky; top: 10px; z-index: 1000;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px 25px;
-            display: flex; flex-wrap: wrap; justify-content: space-between;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-        }
-        .stat-item { text-align: left; }
-        .stat-item span { display: block; font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: 700; }
-        .stat-item b { font-size: 18px; color: var(--primary); }
-
-        /* CARDS */
-        .card {
-            background: var(--card);
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            margin-bottom: 25px;
-        }
-        h2, h3 { margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
-
-        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-
-        .fund-item {
-            background: #f1f5f9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 15px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 15px;
-            border-left: 4px solid var(--primary);
-        }
-
-        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--text-light); }
-        input, select {
-            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
-            font-size: 14px; background: white; outline: none;
-        }
-        input:focus { border-color: var(--primary); }
-
-        .btn {
-            background: var(--primary); color: white; border: none; padding: 12px 20px;
-            border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 15px;
-        }
-        .btn-del { background: #fee2e2; color: #b91c1c; width: auto; padding: 8px 15px; font-size: 12px; }
-
-        /* RESULTS SECTION */
-        .results-box { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
-        .total-card {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white; padding: 30px; border-radius: 12px; text-align: center;
-            display: flex; flex-direction: column; justify-content: center;
-        }
-        .total-amount { font-size: 40px; font-weight: 800; color: #10b981; }
-
-        /* KNOWLEDGE BASE SECTION */
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 40px; }
-        .info-card { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; }
-        .info-card h4 { color: var(--primary); margin-top: 0; }
-        .info-card p { font-size: 14px; color: var(--text-light); line-height: 1.4; }
-        .warning-box { border-left: 4px solid var(--danger); background: #fef2f2; }
-
-        @media (max-width: 768px) { .results-box { grid-template-columns: 1fr; } }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .fund-item { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; border-left: 4px solid var(--primary); }
+        label { display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); outline: none; }
+        .total-box { background: #1e293b; color: white; padding: 30px; border-radius: 12px; text-align: center; }
+        .total-amount { font-size: 40px; font-weight: 800; color: #10b981; display: block; }
+        .btn-add { background: #e2e8f0; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: 600; }
+        .loading { color: var(--primary); font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container" id="app">
-    <div class="header-nav">
-        <div class="stat-item"><span>Возраст прихода</span><b id="retAge">--</b></div>
-        <div class="stat-item"><span>Порог зарплаты</span><b id="safeZone">--</b></div>
-        <div class="stat-item"><span>Выгода работы</span><b id="eff">--</b></div>
-    </div>
-
     <div class="card">
-        <h3>👤 Личный профиль</h3>
-        <div class="grid-inputs">
-            <div><label>ПОЛ</label><select id="gender"><option value="male">Мужчина</option><option value="female">Женщина</option></select></div>
-            <div><label>ГОД РОЖДЕНИЯ</label><input id="birthYear" type="number" value="1965"></div>
-            <div><label>ЗАРПЛАТА (БРУТТО)</label><input id="salary" type="number" value="12000"></div>
-            <div><label>РЫНОЧНЫЙ ПРОГНОЗ</label><select id="scenario"><option value="pess">Осторожный (3%)</option><option value="base" selected>Умеренный (5%)</option><option value="good">Агрессивный (7%)</option></select></div>
+        <h3>👤 Личные параметры</h3>
+        <div class="grid">
+            <div><label>Пол</label><select id="gender"><option value="male">Мужчина</option><option value="female">Женщина</option></select></div>
+            <div><label>Год рождения</label><input id="birthYear" type="number" value="1965"></div>
+            <div><label>Зарплата (Брутто)</label><input id="salary" type="number" value="12000"></div>
+            <div><label>Прогноз</label><select id="scenario"><option value="0.03">3% (Консервативный)</option><option value="0.05" selected>5% (Умеренный)</option><option value="0.07">7% (Агрессивный)</option></select></div>
         </div>
     </div>
 
     <div class="card">
-        <h3>🏦 Пенсионные активы</h3>
-        <div id="funds"></div>
-        <button class="btn" style="background:#e2e8f0; color:#475569;" onclick="addFund()">+ Добавить фонд / Полис</button>
+        <h3>🏦 Пенсионные активы <span id="status" class="loading"></span></h3>
+        <div id="fundsList"></div>
+        <button class="btn-add" onclick="addFund()">+ Добавить фонд</button>
     </div>
 
-    <div class="results-box">
-        <div class="card" style="margin-bottom:0">
-            <h3>📊 Детализация расчета</h3>
-            <div style="display:flex; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
-                <span>Пенсия (номинал):</span> <b id="outNominal">0</b>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
-                <span>Пенсия (сегодняшние деньги):</span> <b id="outReal">0</b>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
-                <span>Пособие Битуах Леуми:</span> <b id="outBtl">0</b>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding: 10px 0;">
-                <span>Доп. доход от капитала:</span> <b id="outCap">0</b>
-            </div>
-            <p style="font-size:11px; color:var(--text-light); margin-top:15px;">* Расчет включает инфляцию 2.5% и налоги.</p>
-        </div>
-
-        <div class="total-card">
-            <span style="font-size:14px; opacity:0.8; text-transform:uppercase;">Ежемесячный доход (Нетто)</span>
-            <span class="total-amount"><span id="outTotal">0</span> ₪</span>
-            <div id="verdict" style="margin-top:15px; font-size:13px; font-weight:500;"></div>
-        </div>
-    </div>
-
-    <div class="info-grid">
-        <div class="info-card">
-            <h4>🔍 Где мои деньги?</h4>
-            <p>Если вы не знаете точные суммы, воспользуйтесь <b>Пенсионной Маслакой (המסלקה הפנסיונית)</b>. Это государственный сервис, который соберет данные по всем вашим счетам за 20 шекелей.</p>
-        </div>
-        <div class="info-card">
-            <h4>📉 Как снизить комиссии?</h4>
-            <p>Проверьте пункт «Дмей Ниуль». Если комиссия с накопления выше 0.3%, вы теряете деньги. Вы можете перевестись в «Выбранные фонды» (Meitav, Infinity и др.) с комиссией около 0.22% онлайн.</p>
-        </div>
-        <div class="info-card warning-box">
-            <h4>⚠️ Внимание: Битуах Менаалим</h4>
-            <p>Если ваш полис открыт до 2013 года, у вас может быть фиксированный <b>Макдем</b>. Его нельзя терять! Перед любым переводом таких денег проконсультируйтесь с экспертом.</p>
-        </div>
+    <div class="total-box">
+        <span style="text-transform: uppercase; font-size: 12px; opacity: 0.8;">Прогноз ежемесячного дохода (Нетто)</span>
+        <span class="total-amount"><span id="outTotal">0</span> ₪</span>
+        <div id="verdict" style="margin-top: 10px; font-size: 14px;"></div>
     </div>
 </div>
 
 <script>
-const CONFIG = {
-    inf: 0.025, sGrow: 0.02,
-    btlBase: 1736, btlLimit: 9208,
-    scenarios: { pess: 0.03, base: 0.05, good: 0.07 }
-};
+// ID вашей таблицы PensiyaData
+const SHEET_ID = '1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw';
+
+// Глобальная переменная для хранения актуальных данных из таблицы
+let realMakdemData = [];
+
+// Функция загрузки реальных данных
+async function loadRealData() {
+    document.getElementById('status').innerText = '[ ЗАГРУЗКА ДАННЫХ ИЗ ТАБЛИЦЫ... ]';
+    try {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Makdem_Reference`;
+        const res = await fetch(url);
+        const text = await res.text();
+        realMakdemData = text.split('\n').map(r => r.split(',').map(c => c.replace(/"/g, '').trim()));
+        document.getElementById('status').innerText = '[ ДАННЫЕ ОБНОВЛЕНЫ ]';
+        calculate();
+    } catch (e) {
+        document.getElementById('status').innerText = '[ ОШИБКА ДОСТУПА К ТАБЛИЦЕ ]';
+        console.error(e);
+    }
+}
 
 function addFund() {
     const div = document.createElement("div");
     div.className = "fund-item";
     div.innerHTML = `
-        <div><label>ТИП</label><select class="f-type"><option value="pension">Пенсия</option><option value="manager">Битух Мен.</option><option value="capital">Капитал</option></select></div>
-        <div><label>БАЛАНС (₪)</label><input class="f-sum" type="number" value="300000"></div>
-        <div><label>ВЗНОС (%)</label><input class="f-dep" type="number" value="18.5"></div>
-        <div><label>КОМИССИЯ (%)</label><input class="f-fee" type="number" value="0.5"></div>
-        <button class="btn-del" onclick="this.parentElement.remove(); calculate();">Удалить</button>
+        <div><label>Тип</label><select class="f-type"><option value="pension">Пенсия</option><option value="manager">Битух Мен.</option><option value="capital">Капитал</option></select></div>
+        <div><label>Баланс</label><input class="f-sum" type="number" value="300000"></div>
+        <div><label>Взнос %</label><input class="f-dep" type="number" value="18.5"></div>
+        <div><label>Комиссия %</label><input class="f-fee" type="number" value="0.5"></div>
+        <button onclick="this.parentElement.remove(); calculate();" style="background:none; border:none; color:red; cursor:pointer;">✖</button>
     `;
-    document.getElementById("funds").appendChild(div);
+    document.getElementById("fundsList").appendChild(div);
     calculate();
 }
 
-function getRetAge(g, y) { return (g === "male") ? 67 : (y >= 1964 ? 65 : 62); }
-
 function calculate() {
-    const g = document.getElementById("gender").value;
-    const y = +document.getElementById("birthYear").value;
-    const sal = +document.getElementById("salary").value;
-    const r = CONFIG.scenarios[document.getElementById("scenario").value];
+    if (realMakdemData.length === 0) return;
 
-    const years = Math.max(0, getRetAge(g, y) - (new Date().getFullYear() - y));
-    let tNom = 0, tCap = 0;
+    const gender = document.getElementById("gender").value;
+    const birthYear = +document.getElementById("birthYear").value;
+    const salary = +document.getElementById("salary").value;
+    const rate = +document.getElementById("scenario").value;
+
+    const retireAge = (gender === "male") ? 67 : (birthYear >= 1964 ? 65 : 62);
+    const years = Math.max(0, retireAge - (new Date().getFullYear() - birthYear));
+    
+    let totalP = 0, totalC = 0;
 
     document.querySelectorAll(".fund-item").forEach(f => {
         let sum = +f.querySelector(".f-sum").value;
-        const dep = +f.querySelector(".f-dep").value / 100, fee = +f.querySelector(".f-fee").value / 100;
+        const dep = +f.querySelector(".f-dep").value / 100;
+        const fee = +f.querySelector(".f-fee").value / 100;
         const type = f.querySelector(".f-type").value;
 
-        let s = sal;
+        // Расчет накопления с учетом доходности и комиссий
         for (let i = 0; i < years; i++) {
-            sum += (s * dep * 12);
-            sum *= (1 + (r - fee));
-            s *= (1 + CONFIG.sGrow);
+            sum += (salary * dep * 12);
+            sum *= (1 + (rate - fee));
         }
-        if (type === "capital") tCap += (sum * 0.04 / 12);
-        else tNom += (sum / (g === "female" ? 205 : 195));
+
+        if (type === "capital") {
+            totalC += (sum * 0.04 / 12);
+        } else {
+            // ПОИСК РЕАЛЬНОГО МАКДЕМА В ТАБЛИЦЕ
+            const row = realMakdemData.find(line => line[0] == birthYear);
+            let m = 200; // По умолчанию
+            if (row) {
+                // Колонки в вашей таблице: 0:Год, 1:Муж(Пенс), 2:Жен(Пенс), 3:Муж(Мен), 4:Жен(Мен)
+                if (gender === "male") m = (type === "manager" ? row[3] : row[1]);
+                else m = (type === "manager" ? row[4] : row[2]);
+            }
+            totalP += (sum / m);
+        }
     });
 
-    const infF = Math.pow(1 + CONFIG.inf, years);
-    const rP = tNom / infF, rC = tCap / infF;
+    // Инфляция 2.5%
+    const realP = totalP / Math.pow(1.025, years);
+    const totalNet = realP + totalC + (salary * 0.9);
 
-    let penalty = 0;
-    const safeZ = Math.max(0, CONFIG.btlLimit - rP);
-    if ((rP + sal) > CONFIG.btlLimit) penalty = (rP + sal - CONFIG.btlLimit) * 0.6;
-    const finalBtl = Math.max(0, CONFIG.btlBase - penalty);
-
-    const netS = sal * 0.9;
-    const eff = sal > 0 ? (((netS - penalty) / sal) * 100) : 100;
-
-    // UI
-    document.getElementById("retAge").innerText = getRetAge(g, y);
-    document.getElementById("safeZone").innerText = Math.round(safeZ).toLocaleString() + " ₪";
-    document.getElementById("eff").innerText = Math.round(eff) + "%";
-    document.getElementById("outNominal").innerText = Math.round(tNom).toLocaleString() + " ₪";
-    document.getElementById("outReal").innerText = Math.round(rP).toLocaleString() + " ₪";
-    document.getElementById("outBtl").innerText = Math.round(finalBtl).toLocaleString() + " ₪";
-    document.getElementById("outCap").innerText = Math.round(rC).toLocaleString() + " ₪";
-    document.getElementById("outTotal").innerText = Math.round(rP + finalBtl + rC + netS).toLocaleString();
-
-    const v = document.getElementById("verdict");
-    v.innerText = eff < 60 ? "⚠️ Высокие потери: налоги и сокращение пособия." : "✅ Оптимальный баланс работы и пенсии.";
-    v.style.color = eff < 60 ? "#ef4444" : "#10b981";
+    document.getElementById("outTotal").innerText = Math.round(totalNet).toLocaleString();
 }
 
 document.getElementById("app").addEventListener("input", calculate);
 addFund();
+loadRealData(); // Загрузка данных при старте
 </script>
 </body>
 </html>
