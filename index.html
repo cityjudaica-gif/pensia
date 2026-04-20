@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pension Navigator 4.0</title>
+    <title>Pension Navigator 4.1</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Libre+Baskerville:wght@400;700&display=swap');
 
@@ -27,7 +27,6 @@
         body { font-family: var(--serif); background: var(--bg); color: var(--text); padding: 20px 16px; line-height: 1.6; }
         .container { max-width: 1100px; margin: 0 auto; }
 
-        /* HEADER & NAV */
         .masthead { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--text); padding-bottom: 10px; margin-bottom: 25px; }
         .masthead h1 { font-family: var(--mono); font-size: 13px; font-weight: 600; text-transform: uppercase; }
         
@@ -39,117 +38,111 @@
         }
         .stat-item { text-align: center; color: #f0ede6; }
         .stat-item span { display: block; font-family: var(--mono); font-size: 9px; color: #9c9888; text-transform: uppercase; }
-        .stat-item b { font-family: var(--mono); font-size: 17px; }
+        .stat-item b { font-family: var(--mono); font-size: 16px; }
 
-        /* CARDS */
         .card { background: var(--card); padding: 22px; border-radius: 4px; border: 1px solid var(--border); margin-bottom: 20px; }
         .card h3 { font-family: var(--mono); font-size: 11px; text-transform: uppercase; color: var(--text-light); margin-bottom: 15px; }
 
-        /* INPUTS */
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
         label { display: block; font-family: var(--mono); font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--text-light); margin-bottom: 4px; }
         input, select { width: 100%; padding: 8px 10px; border-radius: 3px; border: 1px solid var(--border); font-family: var(--mono); font-size: 13px; outline: none; }
         
-        /* FUND ITEM - UPDATED FOR 4.0 */
         .fund-item {
             background: #faf9f6; border: 1px solid var(--border); border-left: 4px solid var(--primary);
             padding: 15px; margin-top: 12px; display: grid;
             grid-template-columns: 1.2fr 1fr 1fr 0.7fr 0.7fr 0.7fr 0.7fr auto; gap: 10px; align-items: end;
         }
-        .work-status { display: flex; align-items: center; gap: 5px; font-size: 10px; font-family: var(--mono); margin-top: 5px; }
-        .work-status input { width: auto; }
 
-        /* RESULTS */
         .results-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .result-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0ede6; }
-        .total-card { background: var(--primary); color: white; padding: 25px; border-radius: 4px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .total-card { background: var(--primary); color: white; padding: 25px; border-radius: 4px; text-align: center; }
         .total-amount { font-family: var(--mono); font-size: 42px; font-weight: 600; line-height: 1; margin: 10px 0; }
 
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
-        .info-card { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 4px; font-size: 13px; }
-        
+        /* OPTIMIZATION GUIDE */
+        .opt-guide { display: none; margin-top: 20px; padding: 20px; background: #fff; border: 1px solid var(--danger); border-radius: 4px; }
+        .opt-guide h4 { font-family: var(--mono); font-size: 12px; color: var(--danger); margin-bottom: 10px; text-transform: uppercase; }
+        .opt-guide ul { padding-left: 20px; font-size: 14px; }
+        .opt-guide li { margin-bottom: 8px; }
+
         .btn { font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; background: var(--text); color: #f0ede6; border: none; padding: 10px 18px; border-radius: 3px; cursor: pointer; }
-        .delete-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 22px; line-height: 1; }
-        
-        @media (max-width: 900px) {
-            .fund-item { grid-template-columns: 1fr 1fr 1fr; }
-            .results-grid { grid-template-columns: 1fr; }
-        }
+        .delete-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 22px; }
+        .toggle-guide { color: #86efac; cursor: pointer; text-decoration: underline; font-size: 10px; }
     </style>
 </head>
 <body>
 <div class="container" id="mainApp">
 
     <div class="masthead">
-        <h1>Pension Navigator 4.0</h1>
-        <span style="font-family:var(--mono); font-size:11px; color:var(--text-light)">IL / Boris Edition / 2026</span>
+        <h1>Pension Navigator 4.1</h1>
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text-light)">IL / Boris / Apr 2026</span>
     </div>
 
     <div class="header-nav">
         <div class="stat-item"><span>Возраст выхода</span><b id="retAge">--</b></div>
-        <div class="stat-item"><span>Безопасная зона</span><b id="safeZone">--</b></div>
+        <div class="stat-item"><span>Лет до пенсии</span><b id="yearsLeft">--</b></div>
         <div class="stat-item"><span>Итого нетто</span><b id="totalQuick">--</b></div>
     </div>
 
     <div class="card">
-        <h3>01 — Параметры профиля</h3>
+        <h3>01 — Точные данные владельца</h3>
         <div class="grid-inputs">
             <div><label>Пол</label><select id="gender"><option value="male">Мужчина</option><option value="female">Женщина</option></select></div>
-            <div><label>Год рождения</label><input id="birthYear" type="number" value="1965"></div>
+            <div><label>Дата рождения</label><input id="birthDate" type="date" value="1965-01-01"></div>
             <div><label>Текущая ЗП (брутто)</label><input id="salary" type="number" value="12000"></div>
-            <div><label>Лет до конца работы</label><input id="yearsToWork" type="number" value="2" min="0" title="Сколько лет вы еще планируете платить взносы"></div>
+            <div><label>Лет активной работы</label><input id="yearsToWork" type="number" value="2" min="0"></div>
         </div>
     </div>
 
     <div class="card">
-        <h3>02 — Анализ активов</h3>
+        <h3>02 — Текущие накопления</h3>
         <div id="fundsList"></div>
-        <button class="btn" onclick="addFund()" style="margin-top:15px; background:#e8e4da; color:var(--text)">+ Добавить фонд/счет</button>
+        <button class="btn" onclick="addFund()" style="margin-top:15px; background:#e8e4da; color:var(--text)">+ Добавить актив</button>
     </div>
 
     <div class="results-grid">
         <div class="card" style="margin-bottom:0">
-            <h3>03 — Прогноз (в ценах сегодня)</h3>
-            <div class="result-row"><span>Пенсия из фондов:</span><b id="outReal">—</b></div>
-            <div class="result-row"><span>Битуах Леуми (пособие):</span><b id="outBtl">—</b></div>
-            <div class="result-row"><span>Доход от капитала (SWR 4%):</span><b id="outCap">—</b></div>
-            <hr style="margin:10px 0; border:none; border-top:1px solid var(--border);">
-            <div class="result-row" style="color:var(--text-light); font-size:12px;"><span>Номинал через X лет:</span><b id="outNominal">—</b></div>
+            <h3>03 — Детализация доходов</h3>
+            <div id="detailsBox"></div>
         </div>
 
         <div class="total-card">
             <span style="font-family:var(--mono); font-size:10px; text-transform:uppercase; opacity:0.8;">Прогноз дохода (Net)</span>
             <span class="total-amount" id="outTotal">0</span>
-            <div id="verdict" style="font-family:var(--mono); font-size:11px; font-weight:600;"></div>
+            <div id="verdictBox">
+                <div id="verdict" style="font-family:var(--mono); font-size:11px; font-weight:600;"></div>
+                <span id="guideLink" class="toggle-guide" onclick="toggleGuide()">Что делать?</span>
+            </div>
         </div>
     </div>
 
-    <div class="info-grid">
-        <div class="info-card">
-            <b style="font-family:var(--mono); font-size:10px; display:block; margin-bottom:5px;">ИНСТРУКЦИЯ</b>
-            Если вы уже не работаете, поставьте «0» в поле «Лет до конца работы». Калькулятор рассчитает рост уже накопленной суммы до достижения пенсионного возраста.
-        </div>
-        <div class="info-card" style="border-left: 3px solid var(--primary);">
-            <b style="font-family:var(--mono); font-size:10px; display:block; margin-bottom:5px;">ОТЧЕТ МАСЛАКИ</b>
-            Для точного расчета введите сумму из графы "Итого накоплено" (יתרה צבורה) из вашего годового отчета.
-        </div>
+    <div id="optimizationGuide" class="opt-guide">
+        <h4>План действий по оптимизации</h4>
+        <ul>
+            <li><b>Снижение комиссий:</b> Проверьте "Дмей ниуль". Снижение с 0.5% до 0.2% может дать +5-7% к итоговой сумме.</li>
+            <li><b>Инвестиционный профиль:</b> Если до пенсии более 5 лет, переход на S&P500 или "Maslul Menayati" исторически дает выше доходность, чем классический профиль.</li>
+            <li><b>Налоговые льготы (Тикун 190):</b> Если у вас есть свободный капитал, вложите его через Тикун 190 — это снизит налог на прибыль до 15% (вместо 25%) и позволит забрать деньги как пенсию.</li>
+            <li><b>Проверка Битуах Леуми:</b> Если сумма ниже 7,000₪, вы можете претендовать на надбавку до прожиточного минимума (Ашламат ахнаса).</li>
+            <li><b>Керен Иштальмут:</b> Не забирайте деньги сразу. После 6 лет они становятся налогосвободными, но продолжают расти. Оставьте их как «подушку».</li>
+        </ul>
+        <button class="btn" style="margin-top:10px; font-size:9px;" onclick="toggleGuide()">Закрыть</button>
     </div>
 </div>
 
 <script>
 const PARAMS = { inf: 0.025, grow: 0.02, btlBase: 1736, btlMax: 9208, market: 0.05 };
-let MAKDEM_TABLE = [[1960, 179, 200, 183, 204], [1965, 184, 206, 188, 210], [1970, 190, 213, 194, 217], [1975, 196, 220, 200, 224]];
+let MAKDEM_TABLE = [[1960, 179, 200, 183, 204], [1965, 184, 206, 188, 210], [1970, 190, 213, 194, 217]];
 
-function getRetireAge(gender, year) {
+function toggleGuide() {
+    const g = document.getElementById('optimizationGuide');
+    g.style.display = g.style.display === 'block' ? 'none' : 'block';
+    g.scrollIntoView({behavior: "smooth"});
+}
+
+function getRetireAge(gender, dateStr) {
+    const year = new Date(dateStr).getFullYear();
     if (gender === 'male') return 67;
     if (year <= 1955) return 62;
     const t = {1956: 62.33, 1957: 62.66, 1958: 63, 1959: 63.33, 1960: 63.66, 1961: 64, 1962: 64.33, 1963: 64.66};
     return t[year] || 65;
-}
-
-function getMakdem(year, gender, type) {
-    const row = MAKDEM_TABLE.reduce((p, c) => Math.abs(c[0] - year) < Math.abs(p[0] - year) ? c : p);
-    return type === 'manager' ? (gender === 'male' ? row[3] : row[4]) : (gender === 'male' ? row[1] : row[2]);
 }
 
 function addFund(name='Harel', type='pension', sum=400000) {
@@ -157,12 +150,12 @@ function addFund(name='Harel', type='pension', sum=400000) {
     div.className = 'fund-item';
     div.innerHTML = `
         <div><label>Фонд</label><input type="text" value="${name}"></div>
-        <div><label>Тип</label><select class="f-type"><option value="pension">Пенсия</option><option value="manager">Битух Мен.</option><option value="capital">Капитал (Керен Ишт.)</option></select></div>
-        <div><label>Уже накоплено</label><input type="number" class="f-sum" value="${sum}"></div>
+        <div><label>Тип</label><select class="f-type"><option value="pension">Пенсия</option><option value="manager">Битух Мен.</option><option value="capital">Капитал</option></select></div>
+        <div><label>Накоплено</label><input type="number" class="f-sum" value="${sum}"></div>
         <div><label>Раб. %</label><input type="number" class="f-emp" value="6"></div>
         <div><label>Хоз. %</label><input type="number" class="f-empr" value="12.5"></div>
         <div><label>Комиссия %</label><input type="number" class="f-fee" value="0.5"></div>
-        <div class="work-status"><input type="checkbox" class="f-active" checked><span>Взносы</span></div>
+        <div style="text-align:center"><label>Взнос</label><input type="checkbox" class="f-active" checked style="width:auto"></div>
         <button class="delete-btn" onclick="this.parentElement.remove(); calculate();">×</button>
     `;
     document.getElementById('fundsList').appendChild(div);
@@ -171,14 +164,19 @@ function addFund(name='Harel', type='pension', sum=400000) {
 
 function calculate() {
     const gender = document.getElementById('gender').value;
-    const birthYear = +document.getElementById('birthYear').value;
+    const birthDate = new Date(document.getElementById('birthDate').value);
     const salary = +document.getElementById('salary').value;
     const yearsToWork = +document.getElementById('yearsToWork').value;
 
-    const retAge = getRetireAge(gender, birthYear);
-    const currentYear = new Date().getFullYear();
-    const currentAge = currentYear - birthYear;
-    const yearsToRetire = Math.max(0, retAge - currentAge);
+    const retAge = getRetireAge(gender, document.getElementById('birthDate').value);
+    const today = new Date();
+    
+    // Точный расчет разницы в годах
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    
+    const yearsToRetire = Math.max(0, retAge - (age + (m/12)));
     
     let totalNominal = 0, totalCapNominal = 0;
 
@@ -190,48 +188,51 @@ function calculate() {
         const type = f.querySelector('.f-type').value;
         
         let loopSalary = salary;
-        for (let i = 0; i < yearsToRetire; i++) {
-            // Взносы идут только пока человек работает (yearsToWork)
+        for (let i = 0; i < Math.ceil(yearsToRetire); i++) {
             if (i < yearsToWork && isActive) {
                 sum += (loopSalary * dep * 12);
                 loopSalary *= (1 + PARAMS.grow);
             }
-            sum *= (1 + PARAMS.market - fee); // Капитализация идет до самой пенсии
+            sum *= (1 + PARAMS.market - fee);
         }
 
         if (type === 'capital') totalCapNominal += (sum * 0.04 / 12);
-        else totalNominal += (sum / getMakdem(birthYear, gender, type));
+        else {
+            const birthYear = birthDate.getFullYear();
+            const row = MAKDEM_TABLE.reduce((p, c) => Math.abs(c[0] - birthYear) < Math.abs(p[0] - birthYear) ? c : p);
+            const makdem = type === 'manager' ? (gender === 'male' ? row[3] : row[4]) : (gender === 'male' ? row[1] : row[2]);
+            totalNominal += (sum / makdem);
+        }
     });
 
     const adj = Math.pow(1 + PARAMS.inf, yearsToRetire);
     const realP = totalNominal / adj;
     const realC = totalCapNominal / adj;
-    const pensionIncome = realP + realC;
-
-    let btlPenalty = 0;
-    if (pensionIncome > PARAMS.btlMax) btlPenalty = (pensionIncome - PARAMS.btlMax) * 0.6;
-    const finalBtl = Math.max(0, PARAMS.btlBase - btlPenalty);
-
-    const totalNet = realP + realC + finalBtl;
-    const fmt = n => Math.round(n).toLocaleString('ru-RU') + ' ₪';
+    const btl = Math.max(0, PARAMS.btlBase - (Math.max(0, (realP + realC) - PARAMS.btlMax) * 0.6));
+    const totalNet = realP + realC + btl;
 
     document.getElementById('retAge').innerText = retAge;
-    document.getElementById('safeZone').innerText = fmt(Math.max(0, PARAMS.btlMax - pensionIncome));
-    document.getElementById('totalQuick').innerText = fmt(totalNet);
-    document.getElementById('outNominal').innerText = fmt(totalNominal + totalCapNominal * 12);
-    document.getElementById('outReal').innerText = fmt(realP);
-    document.getElementById('outBtl').innerText = fmt(finalBtl);
-    document.getElementById('outCap').innerText = fmt(realC);
-    document.getElementById('outTotal').innerText = Math.round(totalNet).toLocaleString('ru-RU');
+    document.getElementById('yearsLeft').innerText = yearsToRetire.toFixed(1);
+    document.getElementById('totalQuick').innerText = Math.round(totalNet).toLocaleString() + ' ₪';
+    document.getElementById('outTotal').innerText = Math.round(totalNet).toLocaleString();
     
     const v = document.getElementById('verdict');
-    v.innerText = totalNet > 7000 ? "✓ ДОСТАТОЧНЫЙ УРОВЕНЬ" : "⚠ ТРЕБУЕТСЯ ОПТИМИЗАЦИЯ";
-    v.style.color = totalNet > 7000 ? "#86efac" : "#fca5a5";
+    const gl = document.getElementById('guideLink');
+    if (totalNet > 7500) {
+        v.innerText = "✓ ПРОГНОЗ СТАБИЛЬНЫЙ"; v.style.color = "#86efac"; gl.style.display = "none";
+    } else {
+        v.innerText = "⚠ ТРЕБУЕТСЯ ОПТИМИЗАЦИЯ"; v.style.color = "#fca5a5"; gl.style.display = "inline";
+    }
+
+    document.getElementById('detailsBox').innerHTML = `
+        <div class="result-row"><span>Чистая пенсия:</span><b>${Math.round(realP).toLocaleString()} ₪</b></div>
+        <div class="result-row"><span>Битуах Леуми:</span><b>${Math.round(btl).toLocaleString()} ₪</b></div>
+        <div class="result-row"><span>Доход от капитала:</span><b>${Math.round(realC).toLocaleString()} ₪</b></div>
+    `;
 }
 
 document.getElementById('mainApp').addEventListener('input', calculate);
 addFund('Harel (Пенсия)', 'pension', 450000);
-addFund('Керен Иштальмут', 'capital', 150000);
 </script>
 </body>
 </html>
