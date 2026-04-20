@@ -3,117 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пенсионный Консультант v2.9</title>
+    <title>Пенсионный Навигатор v3.0</title>
     <style>
-        :root { --p-blue: #1e293b; --a-green: #10b981; --error: #ef4444; --bg: #f1f5f9; }
-        * { box-sizing: border-box; transition: all 0.2s ease; }
+        :root { --p-blue: #1e293b; --a-green: #10b981; --warn: #f59e0b; --error: #ef4444; --bg: #f1f5f9; }
+        * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--p-blue); margin: 0; padding: 10px; }
         
-        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
 
-        /* Плашка стратегии - теперь адаптивная */
+        /* Верхняя панель стратегии */
         .strategy-bar { 
             position: sticky; top: 0; z-index: 1000; 
-            background: var(--p-blue); color: white; 
-            padding: 15px; border-radius: 12px; margin-bottom: 20px;
-            display: flex; flex-wrap: wrap; justify-content: space-around; gap: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            background: var(--p-blue); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px;
+            display: flex; flex-wrap: wrap; justify-content: space-around; gap: 15px;
         }
-        .stat-item { text-align: center; flex: 1; min-width: 140px; }
-        .stat-item span { display: block; font-size: 0.7em; color: #94a3b8; text-transform: uppercase; }
-        .stat-item b { font-size: 1.1em; color: var(--a-green); }
+        .stat-item { text-align: center; flex: 1; min-width: 150px; }
+        .stat-item span { display: block; font-size: 0.7em; color: #94a3b8; text-transform: uppercase; font-weight: bold; }
+        .stat-item b { font-size: 1.2em; color: var(--a-green); }
 
-        .main-layout { display: flex; flex-wrap: wrap; gap: 25px; }
-        .form-side { flex: 3; min-width: 320px; }
+        .main-layout { display: flex; flex-wrap: wrap; gap: 20px; }
+        .form-side { flex: 2; min-width: 320px; }
         .result-side { flex: 1; min-width: 320px; }
 
         /* Поля ввода */
-        .input-card { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        .top-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+        .card { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .top-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
         
         .fund-row { 
-            display: flex; flex-wrap: wrap; gap: 8px; 
+            display: flex; flex-wrap: wrap; gap: 10px; 
             background: white; padding: 12px; border-radius: 8px; 
             margin-bottom: 10px; border: 1px solid #e2e8f0; align-items: flex-end;
         }
-        .fund-row .field { flex: 1; min-width: 120px; }
-        .fund-row .field.small { flex: 0.5; min-width: 80px; }
+        .fund-row .field { flex: 1; min-width: 110px; }
 
         .field { display: flex; flex-direction: column; gap: 4px; }
         label { font-size: 0.7em; font-weight: bold; color: #64748b; text-transform: uppercase; }
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9em; width: 100%; }
 
-        /* Результаты */
-        .sticky-results { position: sticky; top: 100px; background: var(--p-blue); color: white; padding: 25px; border-radius: 15px; }
+        /* Блок результатов */
+        .sticky-results { position: sticky; top: 120px; background: var(--p-blue); color: white; padding: 25px; border-radius: 15px; }
         .res-line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
-        .total-val { font-size: 2.2em; text-align: center; color: var(--a-green); font-weight: bold; margin: 15px 0; }
+        .total-val { font-size: 2.5em; text-align: center; color: var(--a-green); font-weight: bold; margin: 15px 0; border-top: 1px solid #334155; padding-top: 15px; }
 
-        .btn-add { background: var(--p-blue); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 20px; }
-        .btn-del { background: #fee2e2; color: #ef4444; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
+        .btn-add { background: var(--p-blue); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
+        .btn-del { background: #fee2e2; color: #ef4444; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        #verdict { background: #fff9db; padding: 15px; border-radius: 10px; border-left: 5px solid #facc15; font-size: 0.9em; }
+        #verdictBox { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 10px; color: #166534; font-size: 0.9em; line-height: 1.5; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="strategy-bar">
-        <div class="stat-item"><span>Возраст выхода (Гиль Приша)</span><b id="gilPrisha">67</b></div>
-        <div class="stat-item"><span>Безопасная З/П</span><b id="safeWork">0 ₪</b></div>
-        <div class="stat-item"><span>Эффективность работы</span><b id="workEff">100%</b></div>
+        <div class="stat-item"><span>Гиль Приша (Закон)</span><b id="gilPrishaDisplay">67</b></div>
+        <div class="stat-item"><span>Ваш Safe Zone (З/П)</span><b id="safeWorkDisplay">0 ₪</b></div>
+        <div class="stat-item"><span>КПД работы</span><b id="workEffDisplay">100%</b></div>
     </div>
 
     <div class="main-layout">
         <div class="form-side">
-            <div class="input-card">
+            <div class="card">
+                <h3>👤 Личные параметры</h3>
                 <div class="top-grid">
                     <div class="field">
                         <label>Пол</label>
-                        <select id="gender" onchange="run()">
+                        <select id="gender" onchange="runEngine()">
                             <option value="male">Мужчина</option>
                             <option value="female">Женщина</option>
                         </select>
                     </div>
                     <div class="field">
                         <label>Год рождения</label>
-                        <input type="number" id="birthYear" value="1960" oninput="run()">
-                    </div>
-                    <div class="field">
-                        <label>Цель (Нетто), ₪</label>
-                        <input type="number" id="target" value="10000" oninput="run()">
+                        <input type="number" id="birthYear" value="1960" oninput="runEngine()">
                     </div>
                     <div class="field">
                         <label>Олим Хадаш?</label>
-                        <select id="isOleh" onchange="run()">
+                        <select id="isOleh" onchange="runEngine()">
                             <option value="0">Нет</option>
                             <option value="1">Да</option>
                         </select>
                     </div>
-                    <div class="field" style="background:#fff3cd; padding:5px; border-radius:5px;">
-                        <label>Зарплата, ₪</label>
-                        <input type="number" id="salary" value="0" oninput="run()">
+                    <div class="field" style="background: #fff9db; padding: 5px; border-radius: 6px;">
+                        <label>Зарплата (Брутто)</label>
+                        <input type="number" id="workSalary" value="0" oninput="runEngine()">
                     </div>
                 </div>
             </div>
 
-            <h3>🏦 Мои пенсионные фонды</h3>
-            <div id="fundsList"></div>
-            <button class="btn-add" onclick="addFund()">+ Добавить фонд или накопление</button>
+            <h3 style="margin-top: 30px;">🏦 Список фондов и накоплений</h3>
+            <div id="fundsContainer"></div>
+            <button class="btn-add" onclick="addFundRow()">+ Добавить фонд</button>
 
-            <div id="verdict">Введите данные для анализа выгоды работы на пенсии.</div>
+            <div style="margin-top: 25px;" id="verdictBox">
+                Заполните данные для анализа выгоды продолжения работы.
+            </div>
         </div>
 
         <div class="result-side">
             <div class="sticky-results">
-                <h4 style="margin:0; font-size:0.8em; color:#94a3b8; text-transform:uppercase;">Итоговый чек в месяц</h4>
-                <div class="total-val" id="resTotal">0 ₪</div>
+                <h4 style="margin:0; font-size:0.75em; color:#94a3b8; text-transform:uppercase;">Ежемесячный доход Нетто</h4>
+                <div class="res-line"><span>Пенсия:</span> <b id="outPension">0 ₪</b></div>
+                <div class="res-line"><span>Битуах Леуми:</span> <b id="outBtl">0 ₪</b></div>
+                <div class="res-line"><span>Зарплата (Нетто):</span> <b id="outSalary">0 ₪</b></div>
+                <div class="res-line"><span>Доп. капитал:</span> <b id="outCap">0 ₪</b></div>
                 
-                <div class="res-line"><span>Пенсия (Фонды):</span> <b id="resP">0 ₪</b></div>
-                <div class="res-line"><span>Битуах Леуми:</span> <b id="resB">0 ₪</b></div>
-                <div class="res-line"><span>Зарплата (Нетто):</span> <b id="resS">0 ₪</b></div>
-                <div class="res-line"><span>Льготы (CP):</span> <b id="resCP">0 ₪</b></div>
+                <div class="total-val" id="outTotal">0 ₪</div>
                 
-                <div id="goalStatus" style="margin-top:15px; text-align:center; font-weight:bold;"></div>
+                <p style="font-size:0.7em; color:#94a3b8; text-align:center;">
+                    * Расчет учитывает налоговые льготы (CP) и штрафы БЛ.
+                </p>
+                <button class="btn-add" style="background: var(--a-green);" onclick="runEngine()">ОБНОВИТЬ РАСЧЕТ</button>
             </div>
         </div>
     </div>
@@ -122,45 +121,43 @@
 <script>
     const SHEET_ID = '1p40DGKw6tyq5Z3adtoWiDxuLwo00jApWsfbXPHo4unw';
 
-    function addFund() {
+    function addFundRow() {
         const div = document.createElement('div');
         div.className = 'fund-row';
         div.innerHTML = `
-            <div class="field"><label>Название</label><input type="text" placeholder="Harel/Migdal" oninput="run()"></div>
+            <div class="field"><label>Название</label><input type="text" placeholder="Harel/Migdal" oninput="runEngine()"></div>
             <div class="field"><label>Тип</label>
-                <select class="f-type" onchange="run()">
-                    <option value="new">Пенсия</option>
-                    <option value="old">Битух Менаалим</option>
+                <select class="f-type" onchange="runEngine()">
+                    <option value="pension">Пенсия</option>
+                    <option value="manager">Битух Мен.</option>
                     <option value="capital">Капитал (Иштальмут)</option>
                 </select>
             </div>
-            <div class="field small"><label>Сумма</label><input type="number" class="f-sum" value="0" oninput="run()"></div>
-            <div class="field small"><label>Макдем</label><input type="number" class="f-makdem" placeholder="Авто" oninput="run()"></div>
-            <button class="btn-del" onclick="this.parentElement.remove(); run()">×</button>
+            <div class="field"><label>Сумма</label><input type="number" class="f-sum" value="0" oninput="runEngine()"></div>
+            <div class="field"><label>Макдем</label><input type="number" class="f-makdem" placeholder="Авто" oninput="runEngine()"></div>
+            <button class="btn-del" onclick="this.parentElement.remove(); runEngine();">×</button>
         `;
-        document.getElementById('fundsList').appendChild(div);
+        document.getElementById('fundsContainer').appendChild(div);
     }
-    addFund();
+    addFundRow();
 
-    async function run() {
+    async function runEngine() {
         try {
             const makdemData = await fetchCSV('Makdem_Reference');
-            const birthYear = parseInt(document.getElementById('birthYear').value);
             const gender = document.getElementById('gender').value;
-            const salary = parseFloat(document.getElementById('salary').value) || 0;
+            const birthYear = parseInt(document.getElementById('birthYear').value);
+            const salary = parseFloat(document.getElementById('workSalary').value) || 0;
             const isOleh = document.getElementById('isOleh').value === '1';
-            const target = parseFloat(document.getElementById('target').value);
 
-            // 1. Расчет Гиль Приша
+            // 1. Возраст выхода
             let legalAge = (gender === 'male') ? 67 : 62;
             if (gender === 'female' && birthYear >= 1960) {
-                if (birthYear <= 1964) legalAge = 63;
-                else legalAge = 65;
+                legalAge = (birthYear <= 1964) ? 63 : 65;
             }
-            document.getElementById('gilPrisha').innerText = legalAge;
+            document.getElementById('gilPrishaDisplay').innerText = legalAge;
 
-            let pensionBrutto = 0;
-            let capitalIncome = 0;
+            let pensionTotal = 0;
+            let capIncome = 0;
 
             document.querySelectorAll('.fund-row').forEach(row => {
                 const type = row.querySelector('.f-type').value;
@@ -168,55 +165,56 @@
                 let m = parseFloat(row.querySelector('.f-makdem').value);
 
                 if (type === 'capital') {
-                    capitalIncome += (sum * 0.04 / 12);
+                    capIncome += (sum * 0.04 / 12); // Пример: 4% годовых
                 } else {
                     if (!m) {
                         const r = makdemData.find(x => x[0] == birthYear);
-                        if (r) m = (gender === 'male') ? (type === 'old' ? r[3] : r[1]) : (type === 'old' ? r[4] : r[2]);
+                        if (r) m = (gender === 'male') ? (type === 'manager' ? r[3] : r[1]) : (type === 'manager' ? r[4] : r[2]);
                         else m = 200;
                     }
-                    pensionBrutto += (sum / (m || 200));
+                    pensionTotal += (sum / (m || 200));
                 }
             });
 
-            // 2. Битуах Леуми (Mivchan Hachnasot)
-            const LIMIT = 9208;
-            const BTL_FULL = 1736;
-            let currentBtl = BTL_FULL;
-            let penalty = 0;
-            
-            if ((pensionBrutto + salary) > LIMIT) {
-                penalty = (pensionBrutto + salary - LIMIT) * 0.6;
-                currentBtl = Math.max(0, BTL_FULL - penalty);
-            }
+            // 2. Битуах Леуми (2026)
+            const BTL_LIMIT = 9208;
+            const BTL_BASE = 1736;
+            const safeSal = Math.max(0, BTL_LIMIT - pensionTotal);
+            document.getElementById('safeWorkDisplay').innerText = Math.round(safeSal).toLocaleString() + " ₪";
 
-            const safeSal = Math.max(0, LIMIT - pensionBrutto);
-            document.getElementById('safeWork').innerText = Math.round(safeSal).toLocaleString() + " ₪";
+            let currentBtl = BTL_BASE;
+            let penalty = 0;
+            if ((pensionTotal + salary) > BTL_LIMIT) {
+                penalty = (pensionTotal + salary - BTL_LIMIT) * 0.6;
+                currentBtl = Math.max(0, BTL_BASE - penalty);
+            }
 
             // 3. Налоги и КПД
             let cp = (gender === 'female' ? 2.75 : 2.25) + (isOleh ? 1 : 0);
-            let taxBenefit = cp * 242;
-            let netSalary = salary * 0.9;
-            let totalNet = pensionBrutto + currentBtl + capitalIncome + netSalary;
+            let netSalary = salary * 0.9; // Упрощенно
+            let totalNet = pensionTotal + currentBtl + capIncome + netSalary;
+            
+            let eff = salary > 0 ? (((netSalary - penalty) / salary) * 100) : 100;
+            document.getElementById('workEffDisplay').innerText = Math.round(eff) + "%";
 
-            let eff = salary > 0 ? ((netSalary - penalty) / salary * 100) : 100;
-            document.getElementById('workEff').innerText = Math.round(eff) + "%";
+            // Вывод сумм
+            document.getElementById('outPension').innerText = Math.round(pensionTotal).toLocaleString() + " ₪";
+            document.getElementById('outBtl').innerText = Math.round(currentBtl).toLocaleString() + " ₪";
+            document.getElementById('outSalary').innerText = Math.round(netSalary).toLocaleString() + " ₪";
+            document.getElementById('outCap').innerText = Math.round(capIncome).toLocaleString() + " ₪";
+            document.getElementById('outTotal').innerText = Math.round(totalNet).toLocaleString() + " ₪";
 
-            // Вывод
-            document.getElementById('resTotal').innerText = Math.round(totalNet).toLocaleString() + " ₪";
-            document.getElementById('resP').innerText = Math.round(pensionBrutto).toLocaleString() + " ₪";
-            document.getElementById('resB').innerText = Math.round(currentBtl).toLocaleString() + " ₪";
-            document.getElementById('resS').innerText = Math.round(netSalary).toLocaleString() + " ₪";
-            document.getElementById('resCP').innerText = Math.round(taxBenefit).toLocaleString() + " ₪";
+            // Вердикт
+            const v = document.getElementById('verdictBox');
+            if (salary === 0) {
+                v.innerHTML = `💡 Вы можете зарабатывать до <b>${Math.round(safeSal)} ₪</b> без потерь в пособии Битуах Леуми.`;
+            } else if (salary <= safeSal) {
+                v.innerHTML = `✅ Ваша зарплата в "безопасной зоне". Вы получаете максимум выплат от государства.`;
+            } else {
+                v.innerHTML = `⚠️ Из-за высокой зарплаты вы теряете <b>${Math.round(penalty)} ₪</b> из пособия БЛ. Эффективность вашего рабочего часа: <b>${Math.round(eff)}%</b>.`;
+            }
 
-            // Статус и Вердикт
-            const gStatus = document.getElementById('goalStatus');
-            gStatus.innerText = totalNet >= target ? "✅ ЦЕЛЬ ДОСТИГНУТА" : "❌ ДЕФИЦИТ: " + Math.round(target - totalNet) + " ₪";
-            gStatus.style.color = totalNet >= target ? "#10b981" : "#ef4444";
-
-            document.getElementById('verdict').innerHTML = `💡 <b>Вердикт:</b> Вы можете зарабатывать до <b>${Math.round(safeSal)} ₪</b> без потери пособия. При текущей зарплате ваш КПД работы составляет <b>${Math.round(eff)}%</b>.`;
-
-        } catch (e) { console.warn("Waiting for data..."); }
+        } catch (e) { console.warn("Расчет..."); }
     }
 
     async function fetchCSV(name) {
@@ -226,6 +224,5 @@
         return text.split('\n').map(r => r.split(',').map(c => c.replace(/"/g, '').trim()));
     }
 </script>
-
 </body>
 </html>
